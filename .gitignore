@@ -5,6 +5,9 @@
 .env.test
 .env.production
 
+# Configuration files with sensitive data
+config.js
+
 # Dependency directories
 node_modules/
 bower_components/
