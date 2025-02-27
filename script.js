@@ -478,23 +478,6 @@ function validateBetData(data) {
     return true;
 }
 
-// Function to save bet to localStorage
-function saveBetToLocalStorage(betData) {
-    // Get existing bets or initialize empty array
-    let bets = JSON.parse(localStorage.getItem('bets') || '[]');
-    
-    // Add new bet
-    bets.push(betData);
-    
-    // Save back to localStorage
-    localStorage.setItem('bets', JSON.stringify(bets));
-}
-
-// Function to generate a unique ID
-function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-}
-
 // Function to show notification
 function showNotification(message, type = 'info') {
     // Create notification element if it doesn't exist
