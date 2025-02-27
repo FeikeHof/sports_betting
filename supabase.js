@@ -28,7 +28,7 @@ async function fetchBets(userId = null) {
 async function addBet(betData) {
     // Format the data to match the database schema
     const formattedData = {
-        user_id: betData.userId,
+        user_id: betData.user_id,
         website: betData.website,
         description: betData.description,
         odds: betData.odds,

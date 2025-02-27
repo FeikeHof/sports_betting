@@ -384,7 +384,7 @@ async function saveBet() {
         let success = false;
         
         if (editId) {
-            success = await updateBetInSupabase(editId, betData);
+            success = await updateBet(editId, betData);
         } else {
             success = await addBet(betData);
         }
