@@ -353,78 +353,84 @@ function handleWebsiteSelect(value) {
 
 // Function to save bet
 async function saveBet() {
-    // First, check if user is authenticated
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    console.log('Current user:', user);  // This will help debug authentication issues
-    
-    if (!user) {
-        showNotification('Please sign in to save bets', 'error');
-        return;
-    }
-    
-    const form = document.getElementById('new-bet-form');
-    const formData = new FormData(form);
-    const betData = Object.fromEntries(formData.entries());
-    
-    // Validate form data
-    if (!validateBetData(betData)) {
-        return; // Stop if validation fails
-    }
-    
-    // Check if we're in edit mode
-    const editId = form.getAttribute('data-edit-id');
-    
-    // Add user ID to the bet data
-    betData.userId = user.id;  // Use the authenticated user's ID
-    
-    let success = false;
-    
-    if (editId) {
-        // Update existing bet in Supabase
-        success = await updateBet(editId, betData);
-    } else {
-        // Add new bet to Supabase
-        success = await addBet(betData);
-    }
-    
-    if (success) {
-        showNotification('Bet saved successfully!', 'success');
+    try {
+        // First, check if user is authenticated
+        const { data: { user } } = await supabaseClient.auth.getUser();
         
-        // Reset form
-        form.reset();
+        if (!user) {
+            showNotification('Please sign in to save bets', 'error');
+            return;
+        }
         
-        // Set today's date again after reset
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date').value = today;
+        const form = document.getElementById('new-bet-form');
+        const formData = new FormData(form);
+        const betData = Object.fromEntries(formData.entries());
         
-        // Redirect to bet history after short delay
-        setTimeout(() => {
-            handleNavigation('bet-history');
-        }, 1500);
-    } else {
+        // Check website field
+        const websiteInput = document.getElementById('website');
+        betData.website = websiteInput.value;
+        
+        // Validate form data
+        if (!validateBetData(betData)) {
+            return; // Stop if validation fails
+        }
+        
+        // Check if we're in edit mode
+        const editId = form.getAttribute('data-edit-id');
+        
+        // Add user ID to the bet data
+        betData.user_id = user.id;  // Make sure to use user_id for Supabase
+        
+        let success = false;
+        
+        if (editId) {
+            success = await updateBetInSupabase(editId, betData);
+        } else {
+            success = await addBet(betData);
+        }
+        
+        if (success) {
+            showNotification('Bet saved successfully!', 'success');
+            setTimeout(() => {
+                handleNavigation('bet-history');
+            }, 1500);
+        } else {
+            showNotification('Error saving bet. Please try again.', 'error');
+        }
+    } catch (error) {
+        console.error('Error in saveBet:', error);
         showNotification('Error saving bet. Please try again.', 'error');
     }
 }
 
-// Function to update existing bet
-function updateBet(id, updatedData) {
-    // Get existing bets
-    let bets = JSON.parse(localStorage.getItem('bets') || '[]');
-    
-    // Find the bet to update
-    const index = bets.findIndex(bet => bet.id === id);
-    
-    if (index !== -1) {
-        // Preserve metadata
-        updatedData.id = id;
-        updatedData.timestamp = bets[index].timestamp;
-        updatedData.userId = bets[index].userId;
+// Function to update bet in Supabase
+async function updateBetInSupabase(id, betData) {
+    try {
+        // Format the data to match the database schema
+        const formattedData = {
+            website: betData.website,
+            description: betData.description,
+            odds: parseFloat(betData.odds),
+            boosted_odds: betData['boosted-odds'] ? parseFloat(betData['boosted-odds']) : null,
+            amount: parseFloat(betData.amount),
+            date: new Date(betData.date).toISOString(),
+            outcome: betData.outcome
+        };
         
-        // Update the bet
-        bets[index] = updatedData;
+        const { error } = await supabaseClient
+            .from('bets')
+            .update(formattedData)
+            .eq('id', parseInt(id));
         
-        // Save back to localStorage
-        localStorage.setItem('bets', JSON.stringify(bets));
+        if (error) {
+            console.error('Error updating bet:', error);
+            return false;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Unexpected error updating bet:', error);
+        return false;
     }
 }
 
