@@ -1,0 +1,9 @@
+build
+dist
+coverage
+node_modules
+.next
+*.min.js
+*.d.ts
+package-lock.json
+public 
