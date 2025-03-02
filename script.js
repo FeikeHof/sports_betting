@@ -1163,6 +1163,9 @@ async function loadDashboard() {
             }
         });
         
+        // Prepare data for cumulative profit chart
+        const chartData = prepareCumulativeProfitData(userBets);
+        
         // Generate HTML for the dashboard
         contentSection.innerHTML = `
             <h2>Betting Dashboard</h2>
@@ -1193,6 +1196,19 @@ async function loadDashboard() {
                             <div class="stat-label">Return on Investment</div>
                         </div>
                     </div>
+                </section>
+                
+                <!-- Cumulative Profit Chart -->
+                <section class="dashboard-section">
+                    <h3>Cumulative Profit Over Time</h3>
+                    ${chartData.labels.length > 0 ? 
+                        `<div class="chart-container">
+                            <canvas id="profitChart"></canvas>
+                        </div>` : 
+                        `<div class="no-data-message">
+                            <p>Not enough completed bets to display profit chart.</p>
+                        </div>`
+                    }
                 </section>
                 
                 <!-- Website Performance -->
@@ -1267,6 +1283,11 @@ async function loadDashboard() {
             </div>
         `;
         
+        // Initialize the chart if we have data
+        if (chartData.labels.length > 0) {
+            initializeProfitChart(chartData);
+        }
+        
     } catch (error) {
         console.error('Error loading dashboard:', error);
         contentSection.innerHTML = `
@@ -1275,6 +1296,198 @@ async function loadDashboard() {
             <button class="btn-primary" onclick="loadDashboard()">Retry</button>
         `;
     }
+}
+
+// Function to prepare data for cumulative profit chart
+function prepareCumulativeProfitData(bets) {
+    // Filter out pending bets and sort by date
+    const completedBets = bets
+        .filter(bet => bet.outcome !== 'pending')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    if (completedBets.length < 2) {
+        return { labels: [], data: [] };
+    }
+    
+    // Group bets by date
+    const betsByDate = {};
+    
+    completedBets.forEach(bet => {
+        const date = new Date(bet.date).toLocaleDateString();
+        
+        if (!betsByDate[date]) {
+            betsByDate[date] = [];
+        }
+        
+        betsByDate[date].push(bet);
+    });
+    
+    // Calculate profit/loss for each date
+    const labels = [];
+    const data = [];
+    let cumulativeProfit = 0;
+    
+    // Process dates in chronological order
+    Object.keys(betsByDate)
+        .sort((a, b) => new Date(a) - new Date(b))
+        .forEach(date => {
+            let dailyProfit = 0;
+            
+            // Calculate profit for all bets on this date
+            betsByDate[date].forEach(bet => {
+                if (bet.outcome === 'win') {
+                    const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+                    const stake = parseFloat(bet.amount);
+                    const totalPayout = stake * odds;
+                    dailyProfit += totalPayout - stake;  // Subtract stake to get actual profit
+                } else if (bet.outcome === 'loss') {
+                    dailyProfit -= parseFloat(bet.amount);
+                }
+            });
+            
+            // Add to cumulative profit
+            cumulativeProfit += dailyProfit;
+            
+            labels.push(date);
+            data.push(cumulativeProfit.toFixed(2));
+        });
+    
+    return { labels, data };
+}
+
+// Function to initialize the profit chart
+function initializeProfitChart(chartData) {
+    const ctx = document.getElementById('profitChart').getContext('2d');
+    
+    // Determine if the overall trend is positive or negative
+    const lastValue = parseFloat(chartData.data[chartData.data.length - 1]);
+    const chartColor = lastValue >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
+    const chartBgColor = lastValue >= 0 ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)';
+    
+    // Create gradient for the line
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, lastValue >= 0 ? 'rgba(46, 204, 113, 0.4)' : 'rgba(231, 76, 60, 0.4)');
+    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Cumulative Profit (€)',
+                data: chartData.data,
+                borderColor: chartColor,
+                backgroundColor: gradient,
+                borderWidth: 3,
+                pointBackgroundColor: chartColor,
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                fill: true,
+                tension: 0.2,
+                cubicInterpolationMode: 'monotone'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    padding: 12,
+                    cornerRadius: 6,
+                    callbacks: {
+                        title: function(context) {
+                            return `Date: ${context[0].label}`;
+                        },
+                        label: function(context) {
+                            const value = parseFloat(context.raw);
+                            const sign = value >= 0 ? '+' : '';
+                            return `Cumulative Profit: ${sign}€${value.toFixed(2)}`;
+                        },
+                        labelTextColor: function(context) {
+                            const value = parseFloat(context.raw);
+                            return value >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14
+                        },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: {top: 10, bottom: 0}
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cumulative Profit (€)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        padding: {top: 0, bottom: 10}
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            const sign = value >= 0 ? '+' : '';
+                            return `${sign}€${value}`;
+                        },
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            elements: {
+                line: {
+                    borderJoinStyle: 'round'
+                }
+            }
+        }
+    });
 }
 
 // Function to confirm delete bet
