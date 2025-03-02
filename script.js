@@ -1166,6 +1166,9 @@ async function loadDashboard() {
         // Prepare data for cumulative profit chart
         const chartData = prepareCumulativeProfitData(userBets);
         
+        // Calculate monthly performance
+        const monthlyPerformanceData = calculateMonthlyPerformance(userBets);
+        
         // Generate HTML for the dashboard
         contentSection.innerHTML = `
             <h2>Betting Dashboard</h2>
@@ -1207,6 +1210,19 @@ async function loadDashboard() {
                         </div>` : 
                         `<div class="no-data-message">
                             <p>Not enough completed bets to display profit chart.</p>
+                        </div>`
+                    }
+                </section>
+                
+                <!-- Monthly Performance -->
+                <section class="dashboard-section">
+                    <h3>Monthly Performance</h3>
+                    ${monthlyPerformanceData.length > 0 ? 
+                        `<div class="chart-container">
+                            <canvas id="monthlyPerformanceChart"></canvas>
+                        </div>` : 
+                        `<div class="no-data-message">
+                            <p>Not enough data to display monthly performance.</p>
                         </div>`
                     }
                 </section>
@@ -1286,6 +1302,11 @@ async function loadDashboard() {
         // Initialize the chart if we have data
         if (chartData.labels.length > 0) {
             initializeProfitChart(chartData);
+        }
+        
+        // Initialize monthly performance chart
+        if (monthlyPerformanceData.length > 0) {
+            initializeMonthlyPerformanceChart(monthlyPerformanceData);
         }
         
     } catch (error) {
@@ -1484,6 +1505,170 @@ function initializeProfitChart(chartData) {
             elements: {
                 line: {
                     borderJoinStyle: 'round'
+                }
+            }
+        }
+    });
+}
+
+// Function to calculate monthly performance
+function calculateMonthlyPerformance(bets) {
+    // Skip if no bets
+    if (bets.length === 0) {
+        return [];
+    }
+    
+    // Filter out pending bets
+    const completedBets = bets.filter(bet => bet.outcome !== 'pending');
+    
+    // Group bets by month
+    const monthlyData = {};
+    
+    completedBets.forEach(bet => {
+        const date = new Date(bet.date);
+        const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
+        
+        if (!monthlyData[monthYear]) {
+            monthlyData[monthYear] = {
+                totalBets: 0,
+                wins: 0,
+                losses: 0,
+                amountBet: 0,
+                profit: 0
+            };
+        }
+        
+        const data = monthlyData[monthYear];
+        data.totalBets++;
+        data.amountBet += parseFloat(bet.amount);
+        
+        if (bet.outcome === 'win') {
+            data.wins++;
+            const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+            const stake = parseFloat(bet.amount);
+            const totalPayout = stake * odds;
+            data.profit += totalPayout - stake;  // Subtract stake to get actual profit
+        } else if (bet.outcome === 'loss') {
+            data.losses++;
+            data.profit -= parseFloat(bet.amount);
+        }
+    });
+    
+    // Convert to array and sort by date (most recent first)
+    return Object.entries(monthlyData)
+        .map(([month, data]) => ({
+            month,
+            ...data,
+            winRate: data.totalBets > 0 ? ((data.wins / data.totalBets) * 100).toFixed(1) : 0,
+            roi: data.amountBet > 0 ? ((data.profit / data.amountBet) * 100).toFixed(1) : 0
+        }))
+        .sort((a, b) => {
+            // Extract month and year
+            const [aMonth, aYear] = a.month.split(' ');
+            const [bMonth, bYear] = b.month.split(' ');
+            
+            // Compare years first
+            if (aYear !== bYear) {
+                return bYear - aYear; // Most recent year first
+            }
+            
+            // If years are the same, compare months
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return months.indexOf(bMonth) - months.indexOf(aMonth); // Most recent month first
+        });
+}
+
+// Function to initialize monthly performance chart
+function initializeMonthlyPerformanceChart(monthlyData) {
+    const ctx = document.getElementById('monthlyPerformanceChart').getContext('2d');
+    
+    // Prepare data for chart
+    const months = monthlyData.map(data => data.month).reverse();
+    const profits = monthlyData.map(data => data.profit.toFixed(2)).reverse();
+    
+    // Determine colors based on profit values
+    const barColors = profits.map(profit => 
+        parseFloat(profit) >= 0 ? 'rgba(46, 204, 113, 0.7)' : 'rgba(231, 76, 60, 0.7)'
+    );
+    
+    const barBorderColors = profits.map(profit => 
+        parseFloat(profit) >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)'
+    );
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Monthly Profit/Loss (€)',
+                data: profits,
+                backgroundColor: barColors,
+                borderColor: barBorderColors,
+                borderWidth: 2,
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            const value = parseFloat(context.raw);
+                            const sign = value >= 0 ? '+' : '';
+                            const monthData = monthlyData[monthlyData.length - 1 - context.dataIndex];
+                            
+                            return [
+                                `Profit/Loss: ${sign}€${value.toFixed(2)}`,
+                                `Bets: ${monthData.totalBets} (${monthData.wins}W-${monthData.losses}L)`,
+                                `Win Rate: ${monthData.winRate}%`,
+                                `ROI: ${monthData.roi}%`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Month',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Profit/Loss (€)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            const sign = value >= 0 ? '+' : '';
+                            return `${sign}€${value}`;
+                        }
+                    }
                 }
             }
         }

@@ -741,8 +741,8 @@ footer {
 /* Dashboard styles */
 .dashboard-container {
     display: grid;
-    gap: 20px;
-    grid-template-columns: 1fr;
+    gap: 25px;
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .dashboard-section {
@@ -750,6 +750,14 @@ footer {
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-section:nth-child(1) {
+    grid-column: 1 / -1; /* Summary stats take full width */
+}
+
+.dashboard-section:nth-child(2) {
+    grid-column: 1 / -1; /* Cumulative profit chart takes full width */
 }
 
 .dashboard-section h3 {
@@ -779,6 +787,14 @@ footer {
 }
 
 .no-data-message {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Loading message */
+.loading-message {
     text-align: center;
     padding: 20px;
     color: var(--text-muted);
@@ -1176,4 +1192,14 @@ footer {
 .action-buttons button {
     flex: 1;
     max-width: 200px;
+}
+
+@media (max-width: 992px) {
+    .dashboard-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-section {
+        grid-column: 1 / -1 !important;
+    }
 } 
