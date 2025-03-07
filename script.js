@@ -465,16 +465,6 @@ function validateBetData(data) {
         }
     }
     
-    // Validate date (should not be in the future)
-    const betDate = new Date(data.date);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999); // End of today
-    
-    if (betDate > today) {
-        showNotification('Date cannot be in the future', 'error');
-        return false;
-    }
-    
     return true;
 }
 
