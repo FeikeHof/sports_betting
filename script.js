@@ -861,12 +861,12 @@ async function loadBetHistory() {
 function applyFilters() {
     const outcomeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
     const searchTerm = document.getElementById('bet-search').value.toLowerCase();
-    const dateFrom = document.getElementById('date-from').value;
-    const dateTo = document.getElementById('date-to').value;
     
     // Get all rows/cards
     const tableRows = document.querySelectorAll('#bet-table-body tr');
     const cards = document.querySelectorAll('.bet-card');
+    
+    let visibleBets = [];
     
     // Filter the rows/cards
     tableRows.forEach(row => {
@@ -874,8 +874,6 @@ function applyFilters() {
         const outcome = row.querySelector('.outcome-cell').classList[1];
         const website = row.cells[1].textContent.toLowerCase();
         const description = row.cells[2].textContent.toLowerCase();
-        const dateText = row.cells[0].textContent;
-        const date = new Date(dateText);
         
         let visible = true;
         
@@ -889,29 +887,25 @@ function applyFilters() {
             visible = false;
         }
         
-        // Apply date filter
-        if (dateFrom && date < new Date(dateFrom)) {
-            visible = false;
-        }
-        
-        if (dateTo) {
-            const toDate = new Date(dateTo);
-            toDate.setHours(23, 59, 59, 999); // End of the day
-            if (date > toDate) {
-                visible = false;
-            }
-        }
-        
         row.style.display = visible ? '' : 'none';
+        
+        // If visible, add to our collection of visible bets
+        if (visible) {
+            visibleBets.push({
+                amount: parseFloat(row.cells[5].textContent.replace('€', '')),
+                outcome: outcome,
+                odds: parseFloat(row.cells[3].textContent),
+                boostedOdds: row.cells[4].textContent !== '-' ? parseFloat(row.cells[4].textContent) : null
+            });
+        }
     });
     
+    // Update cards visibility (if using card view)
     cards.forEach(card => {
         const betId = card.getAttribute('data-bet-id');
         const outcome = card.classList[1];
         const website = card.querySelector('.bet-website').textContent.toLowerCase();
         const description = card.querySelector('.bet-description').textContent.toLowerCase();
-        const dateText = card.querySelector('.bet-date').textContent;
-        const date = new Date(dateText);
         
         let visible = true;
         
@@ -925,67 +919,36 @@ function applyFilters() {
             visible = false;
         }
         
-        // Apply date filter
-        if (dateFrom && date < new Date(dateFrom)) {
-            visible = false;
-        }
-        
-        if (dateTo) {
-            const toDate = new Date(dateTo);
-            toDate.setHours(23, 59, 59, 999); // End of the day
-            if (date > toDate) {
-                visible = false;
-            }
-        }
-        
         card.style.display = visible ? '' : 'none';
     });
     
-    // Update summary row
-    updateSummaryRow();
-}
-
-// Function to update the summary row based on visible bets
-function updateSummaryRow() {
-    const visibleRows = Array.from(document.querySelectorAll('#bet-table-body tr:not(.filtered)'));
-    let totalAmount = 0;
-    let totalProfitLoss = 0;
-
-    visibleRows.forEach(row => {
-        // Get the amount and outcome from the row
-        const amount = parseFloat(row.cells[5].textContent.replace('€', ''));
-        const outcome = row.cells[6].textContent.toLowerCase();
-        const odds = parseFloat(row.cells[3].textContent);
-        const boostedOdds = row.cells[4].textContent !== '-' ? parseFloat(row.cells[4].textContent) : null;
+    // Calculate new summary based on visible bets
+    const totalBetAmount = visibleBets.reduce((total, bet) => total + bet.amount, 0);
+    const totalProfitLoss = visibleBets.reduce((total, bet) => {
+        if (bet.outcome === 'pending') return total;
         
-        totalAmount += amount;
-        
-        // Calculate profit/loss using the same logic as elsewhere
-        if (outcome !== 'pending') {
-            if (outcome === 'win') {
-                const effectiveOdds = boostedOdds || odds;
-                const stake = amount;
-                const totalPayout = stake * effectiveOdds;
-                const profit = totalPayout - stake;  // Subtract stake to get actual profit
-                totalProfitLoss += profit;
-            } else if (outcome === 'loss') {
-                totalProfitLoss -= amount;
-            }
+        if (bet.outcome === 'win') {
+            const odds = bet.boostedOdds || bet.odds;
+            const stake = bet.amount;
+            const totalPayout = stake * odds;
+            return total + (totalPayout - stake);  // Subtract stake to get actual profit
+        } else if (bet.outcome === 'loss') {
+            return total - bet.amount;
         }
-    });
-
-    // Make sure we're selecting the correct summary row
-    const tableBody = document.getElementById('bet-table-body');
-    const summaryRow = tableBody.parentElement.querySelector('tfoot tr');
+        return total;
+    }, 0);
+    
+    // Update the summary row
+    const summaryRow = document.querySelector('.bet-table tfoot tr');
     if (summaryRow) {
         summaryRow.innerHTML = `
-            <td colspan="5" class="summary-label">Summary (${visibleRows.length} bets):</td>
-            <td>€${totalAmount.toFixed(2)}</td>
+            <td colspan="5" class="summary-label">Summary (${visibleBets.length} bets):</td>
+            <td>€${totalBetAmount.toFixed(2)}</td>
             <td></td>
             <td class="profit-loss ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
                 ${totalProfitLoss >= 0 ? '+€' : '-€'}${Math.abs(totalProfitLoss).toFixed(2)}
             </td>
-            <td></td>
+            <td colspan="2"></td>
         `;
     }
 }
