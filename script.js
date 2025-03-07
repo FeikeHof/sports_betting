@@ -311,6 +311,12 @@ async function loadNewBetForm() {
                     <option value="pending">Pending</option>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label for="note">Note (optional):</label>
+                <textarea id="note" name="note" placeholder="Add any additional notes about this bet"></textarea>
+                <small class="form-hint">Add any relevant information, thoughts, or strategy notes</small>
+            </div>
             
             <div class="form-actions">
                 <button type="submit" class="btn-primary">Save Bet</button>
@@ -379,14 +385,36 @@ async function saveBet() {
         const editId = form.getAttribute('data-edit-id');
         
         // Add user ID to the bet data
-        betData.user_id = user.id;  // Make sure to use user_id for Supabase
+        betData.user_id = user.id;
         
         let success = false;
         
         if (editId) {
-            success = await updateBet(editId, betData);
+            success = await updateBetInSupabase(editId, betData);
         } else {
-            success = await addBet(betData);
+            // Format the data to match the database schema
+            const formattedData = {
+                user_id: user.id,
+                website: betData.website,
+                description: betData.description,
+                odds: parseFloat(betData.odds),
+                boosted_odds: betData['boosted-odds'] ? parseFloat(betData['boosted-odds']) : null,
+                amount: parseFloat(betData.amount),
+                date: new Date(betData.date).toISOString(),
+                outcome: betData.outcome,
+                note: betData.note || null  // Add note field
+            };
+            
+            // Insert the bet into Supabase
+            const { error } = await supabaseClient
+                .from('bets')
+                .insert(formattedData);
+            
+            success = !error;
+            
+            if (error) {
+                console.error('Error saving bet:', error);
+            }
         }
         
         if (success) {
@@ -414,7 +442,8 @@ async function updateBetInSupabase(id, betData) {
             boosted_odds: betData['boosted-odds'] ? parseFloat(betData['boosted-odds']) : null,
             amount: parseFloat(betData.amount),
             date: new Date(betData.date).toISOString(),
-            outcome: betData.outcome
+            outcome: betData.outcome,
+            note: betData.note || null  // Add note field
         };
         
         const { error } = await supabaseClient
@@ -599,6 +628,7 @@ async function loadBetHistory() {
                     <td class="profit-loss ${profitLoss >= 0 ? 'positive' : 'negative'}">
                         ${formattedProfitLoss}
                     </td>
+                    <td class="note-cell">${bet.note || '-'}</td>
                     <td class="actions-cell">
                         <button class="btn-edit" onclick="editBet(${bet.id})">Edit</button>
                         <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})">Delete</button>
@@ -715,6 +745,7 @@ async function loadBetHistory() {
                             <th class="sortable" data-sort="amount">Amount (€)</th>
                             <th class="sortable" data-sort="outcome">Outcome</th>
                             <th class="sortable" data-sort="profit-loss">Profit/Loss (€)</th>
+                            <th class="sortable" data-sort="note">Note</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1733,6 +1764,9 @@ async function editBet(id) {
         document.getElementById('amount').value = bet.amount;
         document.getElementById('date').value = new Date(bet.date).toISOString().split('T')[0];
         document.getElementById('outcome').value = bet.outcome;
+        if (bet.note) {
+            document.getElementById('note').value = bet.note;
+        }
         
         // Set the form to edit mode
         const form = document.getElementById('new-bet-form');

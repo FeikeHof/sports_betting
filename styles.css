@@ -1202,4 +1202,39 @@ footer {
     .dashboard-section {
         grid-column: 1 / -1 !important;
     }
+}
+
+/* Add styles for note textarea */
+.bet-form textarea#note {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+/* Add styles for note cell in table */
+.bet-table .note-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bet-table .note-cell:hover {
+    white-space: normal;
+    overflow: visible;
+    position: relative;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1;
+}
+
+/* Add styles for note in bet cards */
+.bet-card .bet-note {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-style: italic;
+    color: #666;
+    font-size: 0.9rem;
 } 
