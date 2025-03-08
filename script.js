@@ -739,6 +739,7 @@ function applyFilters() {
         const outcome = row.querySelector('.outcome-cell').classList[1];
         const website = row.cells[1].textContent.toLowerCase();
         const description = row.cells[2].textContent.toLowerCase();
+        const note = row.cells[8].textContent.toLowerCase();
         
         let visible = true;
         
@@ -748,7 +749,7 @@ function applyFilters() {
         }
         
         // Apply search filter
-        if (searchTerm && !website.includes(searchTerm) && !description.includes(searchTerm)) {
+        if (searchTerm && !website.includes(searchTerm) && !description.includes(searchTerm) && !note.includes(searchTerm)) {
             visible = false;
         }
         
@@ -891,210 +892,63 @@ async function loadDashboard() {
             `;
             return;
         }
+
+        // Create filter buttons and search
+        const filterButtons = `
+            <div class="bet-filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="win">Wins</button>
+                <button class="filter-btn" data-filter="loss">Losses</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+            </div>
+        `;
         
-        // Calculate key statistics
-        const totalBets = userBets.length;
-        const totalAmount = userBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
-        const wins = userBets.filter(bet => bet.outcome === 'win').length;
-        const winRate = ((wins / totalBets) * 100).toFixed(1);
-        
-        // Calculate total profit/loss
-        const totalProfitLoss = userBets.reduce((total, bet) => {
-            if (bet.outcome === 'pending') return total;
-            
-            if (bet.outcome === 'win') {
-                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const stake = parseFloat(bet.amount);
-                const totalPayout = stake * odds;
-                const profit = totalPayout - stake;  // Subtract stake to get actual profit
-                return total + profit;
-            } else if (bet.outcome === 'loss') {
-                return total - parseFloat(bet.amount);
-            }
-            return total;
-        }, 0);
-        
-        // Calculate ROI
-        const roi = ((totalProfitLoss / totalAmount) * 100).toFixed(1);
-        
-        // Group bets by website
-        const websiteStats = {};
-        userBets.forEach(bet => {
-            if (!websiteStats[bet.website]) {
-                websiteStats[bet.website] = {
-                    totalBets: 0,
-                    totalAmount: 0,
-                    wins: 0,
-                    losses: 0,
-                    pending: 0,
-                    profitLoss: 0
-                };
-            }
-            
-            const stats = websiteStats[bet.website];
-            stats.totalBets++;
-            stats.totalAmount += parseFloat(bet.amount);
-            
-            if (bet.outcome === 'win') {
-                stats.wins++;
-                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const stake = parseFloat(bet.amount);
-                const totalPayout = stake * odds;
-                const profit = totalPayout - stake;  // Subtract stake to get actual profit
-                stats.profitLoss += profit;
-            } else if (bet.outcome === 'loss') {
-                stats.losses++;
-                stats.profitLoss -= parseFloat(bet.amount);
-            } else {
-                stats.pending++;
-            }
-        });
-        
-        // Prepare data for cumulative profit chart
-        const chartData = prepareCumulativeProfitData(userBets);
-        
-        // Calculate monthly performance
-        const monthlyPerformanceData = calculateMonthlyPerformance(userBets);
+        const searchInput = `
+            <div class="search-container">
+                <input type="text" id="bet-search" placeholder="Search bets...">
+                <button id="search-button">Search</button>
+            </div>
+        `;
+
+        // Store bets in a global variable for filtering
+        window.dashboardBets = userBets;
         
         // Generate HTML for the dashboard
         contentSection.innerHTML = `
             <h2>Betting Dashboard</h2>
             
-            <div class="dashboard-container">
-                <!-- Summary Statistics -->
-                <section class="dashboard-section">
-                    <h3>Summary Statistics</h3>
-                    <div class="stats-container">
-                        <div class="stat-box">
-                            <div class="stat-value">${totalBets}</div>
-                            <div class="stat-label">Total Bets</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value">€${totalAmount.toFixed(2)}</div>
-                            <div class="stat-label">Total Amount Bet</div>
-                        </div>
-                        <div class="stat-box ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
-                            <div class="stat-value">€${totalProfitLoss.toFixed(2)}</div>
-                            <div class="stat-label">Total Profit/Loss</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-value">${winRate}%</div>
-                            <div class="stat-label">Win Rate</div>
-                        </div>
-                        <div class="stat-box ${roi >= 0 ? 'positive' : 'negative'}">
-                            <div class="stat-value">${roi}%</div>
-                            <div class="stat-label">Return on Investment</div>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- Cumulative Profit Chart -->
-                <section class="dashboard-section">
-                    <h3>Cumulative Profit Over Time</h3>
-                    ${chartData.labels.length > 0 ? 
-                        `<div class="chart-container">
-                            <canvas id="profitChart"></canvas>
-                        </div>` : 
-                        `<div class="no-data-message">
-                            <p>Not enough completed bets to display profit chart.</p>
-                        </div>`
-                    }
-                </section>
-                
-                <!-- Monthly Performance -->
-                <section class="dashboard-section">
-                    <h3>Monthly Performance</h3>
-                    ${monthlyPerformanceData.length > 0 ? 
-                        `<div class="chart-container">
-                            <canvas id="monthlyPerformanceChart"></canvas>
-                        </div>` : 
-                        `<div class="no-data-message">
-                            <p>Not enough data to display monthly performance.</p>
-                        </div>`
-                    }
-                </section>
-                
-                <!-- Website Performance -->
-                <section class="dashboard-section">
-                    <h3>Website Performance</h3>
-                    <div class="website-stats">
-                        ${Object.entries(websiteStats).map(([website, stats]) => `
-                            <div class="website-stat-card">
-                                <h4>${website}</h4>
-                                <div class="stat-grid">
-                                    <div class="stat-item">
-                                        <span class="label">Total Bets:</span>
-                                        <span class="value">${stats.totalBets}</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="label">Total Amount:</span>
-                                        <span class="value">€${stats.totalAmount.toFixed(2)}</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="label">Win Rate:</span>
-                                        <span class="value">${((stats.wins / stats.totalBets) * 100).toFixed(1)}%</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="label">Profit/Loss:</span>
-                                        <span class="value ${stats.profitLoss >= 0 ? 'positive' : 'negative'}">
-                                            €${stats.profitLoss.toFixed(2)}
-                                        </span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="label">Record:</span>
-                                        <span class="value">${stats.wins}W-${stats.losses}L-${stats.pending}P</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </section>
-                
-                <!-- Recent Bets -->
-                <section class="dashboard-section">
-                    <h3>Recent Bets</h3>
-                    <div class="recent-bets-container">
-                        ${userBets.slice(0, 5).map(bet => {
-                            const profitLoss = bet.outcome === 'win' 
-                                ? (parseFloat(bet.amount) * (bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds)) - parseFloat(bet.amount))  // Subtract stake
-                                : (bet.outcome === 'loss' ? -parseFloat(bet.amount) : 0);
-                            
-                            return `
-                                <div class="recent-bet ${bet.outcome}">
-                                    <div class="recent-bet-header">
-                                        <span class="recent-bet-date">${new Date(bet.date).toLocaleDateString()}</span>
-                                        <span class="recent-bet-website">${bet.website}</span>
-                                    </div>
-                                    <p class="recent-bet-desc">${bet.description}</p>
-                                    <div class="recent-bet-footer">
-                                        <span class="recent-bet-amount">€${parseFloat(bet.amount).toFixed(2)}</span>
-                                        <span class="recent-bet-outcome ${bet.outcome}">${bet.outcome.toUpperCase()}</span>
-                                        ${bet.outcome !== 'pending' 
-                                            ? `<span class="recent-bet-profit ${profitLoss >= 0 ? 'positive' : 'negative'}">
-                                                ${profitLoss >= 0 ? '+' : ''}€${profitLoss.toFixed(2)}
-                                               </span>`
-                                            : ''}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    <div class="view-all-container">
-                        <button class="btn-secondary" onclick="handleNavigation('bet-history')">View All Bets</button>
-                    </div>
-                </section>
+            <div class="history-controls">
+                <div class="controls-row">
+                    ${filterButtons}
+                </div>
+                <div class="controls-row">
+                    ${searchInput}
+                </div>
+            </div>
+
+            <div class="dashboard-container" id="dashboard-content">
+                <!-- Content will be updated by applyDashboardFilters -->
             </div>
         `;
-        
-        // Initialize the chart if we have data
-        if (chartData.labels.length > 0) {
-            initializeProfitChart(chartData);
-        }
-        
-        // Initialize monthly performance chart
-        if (monthlyPerformanceData.length > 0) {
-            initializeMonthlyPerformanceChart(monthlyPerformanceData);
-        }
+
+        // Add event listeners for filters
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                applyDashboardFilters();
+            });
+        });
+
+        // Add event listener for search
+        document.getElementById('search-button').addEventListener('click', function() {
+            applyDashboardFilters();
+        });
+
+        // Initial load with all bets
+        applyDashboardFilters();
         
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -1103,6 +957,223 @@ async function loadDashboard() {
             <p>Error loading betting statistics. Please try again later.</p>
             <button class="btn-primary" onclick="loadDashboard()">Retry</button>
         `;
+    }
+}
+
+// Function to apply dashboard filters
+function applyDashboardFilters() {
+    const outcomeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+    const searchTerm = document.getElementById('bet-search').value.toLowerCase();
+    
+    // Filter bets
+    const filteredBets = window.dashboardBets.filter(bet => {
+        // Apply outcome filter
+        if (outcomeFilter !== 'all' && bet.outcome !== outcomeFilter) {
+            return false;
+        }
+        
+        // Apply search filter
+        if (searchTerm && !bet.website.toLowerCase().includes(searchTerm) && 
+            !bet.description.toLowerCase().includes(searchTerm) &&
+            !(bet.note && bet.note.toLowerCase().includes(searchTerm))) {
+            return false;
+        }
+        
+        return true;
+    });
+
+    // Calculate statistics based on filtered bets
+    const totalBets = filteredBets.length;
+    const totalAmount = filteredBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
+    const wins = filteredBets.filter(bet => bet.outcome === 'win').length;
+    const winRate = totalBets > 0 ? ((wins / totalBets) * 100).toFixed(1) : '0.0';
+    
+    const totalProfitLoss = filteredBets.reduce((total, bet) => {
+        if (bet.outcome === 'pending') return total;
+        
+        if (bet.outcome === 'win') {
+            const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+            const stake = parseFloat(bet.amount);
+            const totalPayout = stake * odds;
+            return total + (totalPayout - stake);
+        } else if (bet.outcome === 'loss') {
+            return total - parseFloat(bet.amount);
+        }
+        return total;
+    }, 0);
+    
+    const roi = totalAmount > 0 ? ((totalProfitLoss / totalAmount) * 100).toFixed(1) : '0.0';
+
+    // Group bets by website
+    const websiteStats = {};
+    filteredBets.forEach(bet => {
+        if (!websiteStats[bet.website]) {
+            websiteStats[bet.website] = {
+                totalBets: 0,
+                totalAmount: 0,
+                wins: 0,
+                losses: 0,
+                pending: 0,
+                profitLoss: 0
+            };
+        }
+        
+        const stats = websiteStats[bet.website];
+        stats.totalBets++;
+        stats.totalAmount += parseFloat(bet.amount);
+        
+        if (bet.outcome === 'win') {
+            stats.wins++;
+            const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+            const stake = parseFloat(bet.amount);
+            const totalPayout = stake * odds;
+            stats.profitLoss += totalPayout - stake;
+        } else if (bet.outcome === 'loss') {
+            stats.losses++;
+            stats.profitLoss -= parseFloat(bet.amount);
+        } else {
+            stats.pending++;
+        }
+    });
+
+    // Prepare chart data
+    const chartData = prepareCumulativeProfitData(filteredBets);
+    const monthlyPerformanceData = calculateMonthlyPerformance(filteredBets);
+
+    // Update dashboard content
+    const dashboardContent = document.getElementById('dashboard-content');
+    dashboardContent.innerHTML = `
+        <!-- Summary Statistics -->
+        <section class="dashboard-section">
+            <h3>Summary Statistics</h3>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-value">${totalBets}</div>
+                    <div class="stat-label">Total Bets</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">€${totalAmount.toFixed(2)}</div>
+                    <div class="stat-label">Total Amount Bet</div>
+                </div>
+                <div class="stat-box ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-value">€${totalProfitLoss.toFixed(2)}</div>
+                    <div class="stat-label">Total Profit/Loss</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${winRate}%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-box ${roi >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-value">${roi}%</div>
+                    <div class="stat-label">Return on Investment</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Cumulative Profit Chart -->
+        <section class="dashboard-section">
+            <h3>Cumulative Profit Over Time</h3>
+            ${chartData.labels.length > 0 ? 
+                `<div class="chart-container">
+                    <canvas id="profitChart"></canvas>
+                </div>` : 
+                `<div class="no-data-message">
+                    <p>Not enough completed bets to display profit chart.</p>
+                </div>`
+            }
+        </section>
+        
+        <!-- Monthly Performance -->
+        <section class="dashboard-section">
+            <h3>Monthly Performance</h3>
+            ${monthlyPerformanceData.length > 0 ? 
+                `<div class="chart-container">
+                    <canvas id="monthlyPerformanceChart"></canvas>
+                </div>` : 
+                `<div class="no-data-message">
+                    <p>Not enough data to display monthly performance.</p>
+                </div>`
+            }
+        </section>
+        
+        <!-- Website Performance -->
+        <section class="dashboard-section">
+            <h3>Website Performance</h3>
+            <div class="website-stats">
+                ${Object.entries(websiteStats).map(([website, stats]) => `
+                    <div class="website-stat-card">
+                        <h4>${website}</h4>
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="label">Total Bets:</span>
+                                <span class="value">${stats.totalBets}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Total Amount:</span>
+                                <span class="value">€${stats.totalAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Win Rate:</span>
+                                <span class="value">${stats.totalBets > 0 ? ((stats.wins / stats.totalBets) * 100).toFixed(1) : '0.0'}%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Profit/Loss:</span>
+                                <span class="value ${stats.profitLoss >= 0 ? 'positive' : 'negative'}">
+                                    €${stats.profitLoss.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Record:</span>
+                                <span class="value">${stats.wins}W-${stats.losses}L-${stats.pending}P</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </section>
+        
+        <!-- Recent Bets -->
+        <section class="dashboard-section">
+            <h3>Recent Bets</h3>
+            <div class="recent-bets-container">
+                ${filteredBets.slice(0, 5).map(bet => {
+                    const profitLoss = bet.outcome === 'win' 
+                        ? (parseFloat(bet.amount) * (bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds)) - parseFloat(bet.amount))
+                        : (bet.outcome === 'loss' ? -parseFloat(bet.amount) : 0);
+                    
+                    return `
+                        <div class="recent-bet ${bet.outcome}">
+                            <div class="recent-bet-header">
+                                <span class="recent-bet-date">${new Date(bet.date).toLocaleDateString()}</span>
+                                <span class="recent-bet-website">${bet.website}</span>
+                            </div>
+                            <p class="recent-bet-desc">${bet.description}</p>
+                            <div class="recent-bet-footer">
+                                <span class="recent-bet-amount">€${parseFloat(bet.amount).toFixed(2)}</span>
+                                <span class="recent-bet-outcome ${bet.outcome}">${bet.outcome.toUpperCase()}</span>
+                                ${bet.outcome !== 'pending' 
+                                    ? `<span class="recent-bet-profit ${profitLoss >= 0 ? 'positive' : 'negative'}">
+                                        ${profitLoss >= 0 ? '+' : ''}€${profitLoss.toFixed(2)}
+                                       </span>`
+                                    : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="view-all-container">
+                <button class="btn-secondary" onclick="handleNavigation('bet-history')">View All Bets</button>
+            </div>
+        </section>
+    `;
+
+    // Initialize charts if we have data
+    if (chartData.labels.length > 0) {
+        initializeProfitChart(chartData);
+    }
+    
+    if (monthlyPerformanceData.length > 0) {
+        initializeMonthlyPerformanceChart(monthlyPerformanceData);
     }
 }
 
