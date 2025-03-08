@@ -604,7 +604,7 @@ async function loadBetHistory() {
             
             // Format profit/loss for display
             const formattedProfitLoss = bet.outcome === 'pending' 
-                ? 'Pending' 
+                ? 'PENDING' 
                 : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
             
             // Format date
@@ -625,13 +625,13 @@ async function loadBetHistory() {
                     <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
                     <td>€${parseFloat(bet.amount).toFixed(2)}</td>
                     <td class="outcome-cell ${bet.outcome}">${bet.outcome.toUpperCase()}</td>
-                    <td class="profit-loss ${profitLoss >= 0 ? 'positive' : 'negative'}">
+                    <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
                         ${formattedProfitLoss}
                     </td>
                     <td class="note-cell">${bet.note || '-'}</td>
                     <td class="actions-cell">
-                        <button class="btn-edit" onclick="editBet(${bet.id})">Edit</button>
-                        <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})">Delete</button>
+                        <button class="btn-edit" onclick="editBet(${bet.id})" title="Edit bet">Edit</button>
+                        <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})" title="Delete bet">Delete</button>
                     </td>
                 </tr>
             `;
@@ -652,7 +652,7 @@ async function loadBetHistory() {
             
             // Format profit/loss for display
             const formattedProfitLoss = bet.outcome === 'pending' 
-                ? 'Pending' 
+                ? 'PENDING' 
                 : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
             
             // Format date
@@ -688,7 +688,7 @@ async function loadBetHistory() {
                             </div>
                             <div class="bet-detail">
                                 <span class="detail-label">Profit/Loss:</span>
-                                <span class="detail-value ${profitLoss >= 0 ? 'positive' : 'negative'}">
+                                <span class="detail-value ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
                                     ${formattedProfitLoss}
                                 </span>
                             </div>
@@ -990,13 +990,13 @@ function sortBets(sortBy, direction) {
                 const textA = a.cells[7].textContent;
                 const textB = b.cells[7].textContent;
                 
-                if (textA === 'Pending' && textB === 'Pending') {
+                if (textA === 'PENDING' && textB === 'PENDING') {
                     valueA = valueB = 0;
-                } else if (textA === 'Pending') {
+                } else if (textA === 'PENDING') {
                     valueA = -Infinity;
                     valueB = parseFloat(textB.replace(/[+€-]/g, '')) * 
                             (textB.includes('-') ? -1 : 1);
-                } else if (textB === 'Pending') {
+                } else if (textB === 'PENDING') {
                     valueA = parseFloat(textA.replace(/[+€-]/g, '')) * 
                             (textA.includes('-') ? -1 : 1);
                     valueB = -Infinity;

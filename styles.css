@@ -1237,4 +1237,101 @@ footer {
     font-style: italic;
     color: #666;
     font-size: 0.9rem;
+}
+
+/* Action buttons in bet history */
+.actions-cell {
+    white-space: nowrap;
+    padding: 8px !important;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-edit,
+.btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.btn-edit {
+    background-color: #3498db;
+}
+
+.btn-edit:before {
+    content: "✎";
+    font-size: 1rem;
+}
+
+.btn-edit:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+}
+
+.btn-delete:before {
+    content: "×";
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-edit:active,
+.btn-delete:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Responsive adjustments for action buttons */
+@media (max-width: 768px) {
+    .actions-cell {
+        padding: 4px !important;
+        gap: 4px;
+    }
+
+    .btn-edit,
+    .btn-delete {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Card view action buttons */
+.bet-card .bet-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.bet-card .btn-edit,
+.bet-card .btn-delete {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
+/* Add styles for pending text in profit/loss column */
+.bet-table .profit-loss.pending {
+    color: #f39c12;
+    font-weight: 600;
 } 
