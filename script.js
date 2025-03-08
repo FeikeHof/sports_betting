@@ -535,7 +535,7 @@ async function loadBetHistory() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         const userId = user ? user.id : null;
         
-        // Fetch bets from Supabase
+        // Fetch bets
         const userBets = await fetchBets(userId);
         
         if (userBets.length === 0) {
@@ -565,83 +565,6 @@ async function loadBetHistory() {
             </div>
         `;
         
-        // Create date filter
-        const dateFilter = `
-            <div class="date-filter">
-                <label for="date-from">From:</label>
-                <input type="date" id="date-from">
-                <label for="date-to">To:</label>
-                <input type="date" id="date-to">
-                <button id="date-filter-button">Filter</button>
-                <button id="date-filter-reset">Reset</button>
-            </div>
-        `;
-        
-        // Filter the rows
-        const tableRows = userBets.map(bet => {
-            // Calculate profit/loss
-            let profitLoss = 0;
-            if (bet.outcome === 'win') {
-                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const stake = parseFloat(bet.amount);
-                const totalPayout = stake * odds;
-                profitLoss = totalPayout - stake;  // Subtract stake to get actual profit
-            } else if (bet.outcome === 'loss') {
-                profitLoss = -parseFloat(bet.amount);
-            }
-            
-            // Format profit/loss for display
-            const formattedProfitLoss = bet.outcome === 'pending' 
-                ? 'PENDING' 
-                : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
-            
-            // Format date
-            const betDate = new Date(bet.date);
-            const formattedDate = betDate.toLocaleDateString();
-            
-            // Determine row class based on outcome
-            const rowClass = bet.outcome === 'win' ? 'win-row' : 
-                            bet.outcome === 'loss' ? 'loss-row' : 
-                            'pending-row';
-            
-            return `
-                <tr class="${rowClass}" data-bet-id="${bet.id}">
-                    <td>${formattedDate}</td>
-                    <td>${bet.website}</td>
-                    <td class="description-cell">${bet.description}</td>
-                    <td>${parseFloat(bet.odds).toFixed(2)}</td>
-                    <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
-                    <td>€${parseFloat(bet.amount).toFixed(2)}</td>
-                    <td class="outcome-cell ${bet.outcome}">${bet.outcome.toUpperCase()}</td>
-                    <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
-                        ${formattedProfitLoss}
-                    </td>
-                    <td class="note-cell">${bet.note || '-'}</td>
-                    <td class="actions-cell">
-                        <button class="btn-edit" onclick="editBet(${bet.id})" title="Edit bet">Edit</button>
-                        <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})" title="Delete bet">Delete</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-        
-        // Calculate total bet amount and profit/loss
-        const totalBetAmount = userBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
-        const totalProfitLoss = userBets.reduce((total, bet) => {
-            if (bet.outcome === 'pending') return total;
-            
-            if (bet.outcome === 'win') {
-                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const stake = parseFloat(bet.amount);
-                const totalPayout = stake * odds;
-                return total + (totalPayout - stake);  // Subtract stake to get actual profit
-            } else if (bet.outcome === 'loss') {
-                return total - parseFloat(bet.amount);
-            }
-            
-            return total;
-        }, 0);
-        
         // Create the HTML for the bet history page
         contentSection.innerHTML = `
             <h2>Bet History</h2>
@@ -652,7 +575,6 @@ async function loadBetHistory() {
                 </div>
                 <div class="controls-row">
                     ${searchInput}
-                    ${dateFilter}
                 </div>
             </div>
             
@@ -673,15 +595,96 @@ async function loadBetHistory() {
                         </tr>
                     </thead>
                     <tbody id="bet-table-body">
-                        ${tableRows}
+                        ${userBets.map(bet => {
+                            // Calculate profit/loss
+                            let profitLoss = 0;
+                            if (bet.outcome === 'win') {
+                                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+                                const stake = parseFloat(bet.amount);
+                                const totalPayout = stake * odds;
+                                profitLoss = totalPayout - stake;  // Subtract stake to get actual profit
+                            } else if (bet.outcome === 'loss') {
+                                profitLoss = -parseFloat(bet.amount);
+                            }
+                            
+                            // Format profit/loss for display
+                            const formattedProfitLoss = bet.outcome === 'pending' 
+                                ? 'PENDING' 
+                                : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
+                            
+                            // Format date
+                            const betDate = new Date(bet.date);
+                            const formattedDate = betDate.toLocaleDateString();
+                            
+                            // Determine row class based on outcome
+                            const rowClass = bet.outcome === 'win' ? 'win-row' : 
+                                            bet.outcome === 'loss' ? 'loss-row' : 
+                                            'pending-row';
+                            
+                            return `
+                                <tr class="${rowClass}" data-bet-id="${bet.id}">
+                                    <td>${formattedDate}</td>
+                                    <td>${bet.website}</td>
+                                    <td class="description-cell">${bet.description}</td>
+                                    <td>${parseFloat(bet.odds).toFixed(2)}</td>
+                                    <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
+                                    <td>€${parseFloat(bet.amount).toFixed(2)}</td>
+                                    <td class="outcome-cell ${bet.outcome}">${bet.outcome.toUpperCase()}</td>
+                                    <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
+                                        ${formattedProfitLoss}
+                                    </td>
+                                    <td class="note-cell">${bet.note || '-'}</td>
+                                    <td class="actions-cell">
+                                        <button class="btn-edit" onclick="editBet(${bet.id})" title="Edit bet">Edit</button>
+                                        <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})" title="Delete bet">Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                     <tfoot>
                         <tr>
                             <td colspan="5" class="summary-label">Summary (${userBets.length} bets):</td>
-                            <td>€${totalBetAmount.toFixed(2)}</td>
+                            <td>€${userBets.reduce((total, bet) => total + parseFloat(bet.amount), 0).toFixed(2)}</td>
                             <td></td>
-                            <td class="profit-loss ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
-                                ${totalProfitLoss >= 0 ? '+€' : '-€'}${Math.abs(totalProfitLoss).toFixed(2)}
+                            <td class="profit-loss ${userBets.reduce((total, bet) => {
+                                if (bet.outcome === 'pending') return total;
+                                
+                                if (bet.outcome === 'win') {
+                                    const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+                                    const stake = parseFloat(bet.amount);
+                                    const totalPayout = stake * odds;
+                                    return total + (totalPayout - stake);
+                                } else if (bet.outcome === 'loss') {
+                                    return total - parseFloat(bet.amount);
+                                }
+                                return total;
+                            }, 0) >= 0 ? 'positive' : 'negative'}">
+                                ${userBets.reduce((total, bet) => {
+                                    if (bet.outcome === 'pending') return total;
+                                    
+                                    if (bet.outcome === 'win') {
+                                        const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+                                        const stake = parseFloat(bet.amount);
+                                        const totalPayout = stake * odds;
+                                        return total + (totalPayout - stake);
+                                    } else if (bet.outcome === 'loss') {
+                                        return total - parseFloat(bet.amount);
+                                    }
+                                    return total;
+                                }, 0) >= 0 ? '+€' : '-€'}${Math.abs(userBets.reduce((total, bet) => {
+                                    if (bet.outcome === 'pending') return total;
+                                    
+                                    if (bet.outcome === 'win') {
+                                        const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+                                        const stake = parseFloat(bet.amount);
+                                        const totalPayout = stake * odds;
+                                        return total + (totalPayout - stake);
+                                    } else if (bet.outcome === 'loss') {
+                                        return total - parseFloat(bet.amount);
+                                    }
+                                    return total;
+                                }, 0)).toFixed(2)}
                             </td>
                             <td colspan="2"></td>
                         </tr>
@@ -711,38 +714,6 @@ async function loadBetHistory() {
             applyFilters();
         });
         
-        // Add event listener for date filter
-        document.getElementById('date-filter-button').addEventListener('click', function() {
-            applyFilters();
-        });
-        
-        // Add event listener for date filter reset
-        document.getElementById('date-filter-reset').addEventListener('click', function() {
-            document.getElementById('date-from').value = '';
-            document.getElementById('date-to').value = '';
-            applyFilters();
-        });
-        
-        // Add event listeners for sortable columns
-        document.querySelectorAll('.sortable').forEach(header => {
-            header.addEventListener('click', function() {
-                const sortBy = this.getAttribute('data-sort');
-                const currentDirection = this.querySelector('.sort-icon').textContent;
-                const newDirection = currentDirection === '↓' ? '↑' : '↓';
-                
-                // Reset all sort icons
-                document.querySelectorAll('.sort-icon').forEach(icon => {
-                    icon.textContent = '';
-                });
-                
-                // Set the new sort icon
-                this.querySelector('.sort-icon').textContent = newDirection;
-                
-                // Sort the bets
-                sortBets(sortBy, newDirection === '↓' ? 'desc' : 'asc');
-            });
-        });
-        
     } catch (error) {
         console.error('Error loading bet history:', error);
         contentSection.innerHTML = `
@@ -765,7 +736,6 @@ function applyFilters() {
     
     // Filter the rows
     tableRows.forEach(row => {
-        const betId = row.getAttribute('data-bet-id');
         const outcome = row.querySelector('.outcome-cell').classList[1];
         const website = row.cells[1].textContent.toLowerCase();
         const description = row.cells[2].textContent.toLowerCase();
@@ -1583,5 +1553,27 @@ async function editBet(id) {
     } catch (error) {
         console.error('Error editing bet:', error);
         showNotification('Error loading bet for editing. Please try again.', 'error');
+    }
+}
+
+async function fetchBets(userId) {
+    try {
+        let query = supabaseClient
+            .from('bets')
+            .select('*')
+            .eq('user_id', userId)
+            .order('date', { ascending: false });
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Error fetching bets:', error);
+            return [];
+        }
+
+        return data || [];
+    } catch (error) {
+        console.error('Unexpected error fetching bets:', error);
+        return [];
     }
 } 
