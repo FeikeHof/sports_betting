@@ -632,8 +632,9 @@ async function loadBetHistory() {
             
             if (bet.outcome === 'win') {
                 const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const amount = parseFloat(bet.amount);
-                return total + (amount * odds);
+                const stake = parseFloat(bet.amount);
+                const totalPayout = stake * odds;
+                return total + (totalPayout - stake);  // Subtract stake to get actual profit
             } else if (bet.outcome === 'loss') {
                 return total - parseFloat(bet.amount);
             }
@@ -676,13 +677,13 @@ async function loadBetHistory() {
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="summary-label">Summary:</td>
+                            <td colspan="5" class="summary-label">Summary (${userBets.length} bets):</td>
                             <td>€${totalBetAmount.toFixed(2)}</td>
                             <td></td>
                             <td class="profit-loss ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
                                 ${totalProfitLoss >= 0 ? '+€' : '-€'}${Math.abs(totalProfitLoss).toFixed(2)}
                             </td>
-                            <td></td>
+                            <td colspan="2"></td>
                         </tr>
                     </tfoot>
                 </table>
