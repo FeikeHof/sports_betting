@@ -1669,7 +1669,7 @@ function loadSuperBoostStrategy() {
             <section class="strategy-section">
                 <h3>Why Do Sportsbooks Offer Super Boosts?</h3>
                 <p>Sportsbooks introduce super boosts to attract traffic and engage users. These promotions temporarily enhance the odds of certain bets, often offering odds higher than their true probability suggests. While sportsbooks may take a short-term loss on these boosts, their ultimate goal is to encourage users to place additional, less favorable bets while logged in.</p>
-                <img src="assets/images/sportsbook-marketing.png" alt="Sportsbook marketing strategy illustration" class="strategy-image">
+                
                 <div class="strategy-highlight">
                     <p>Key Point: Super boosts are marketing tools that can be turned into profit opportunities when used strategically and in isolation.</p>
                 </div>
@@ -1686,11 +1686,10 @@ function loadSuperBoostStrategy() {
                     <li>Odds of 1.50 mean a 1 unit bet returns 1.50 units (0.50 unit profit + 1 unit stake)</li>
                 </ul>
                 <p>However, sportsbooks typically do not offer fair odds because they need to make a profit.</p>
-                <img src="assets/images/decimal-odds.png" alt="Decimal odds explanation diagram" class="strategy-image">
             </section>
 
             <section class="strategy-section">
-                <h3>The Role of the Sportsbook's Vig (Commission)</h3>
+                <h3>The Role of the Sportsbook's Vig</h3>
                 <p>Example:</p>
                 <p>A sporting event has the following initial decimal odds:</p>
                 <ul>
@@ -1698,7 +1697,7 @@ function loadSuperBoostStrategy() {
                     <li>Outcome B: 1.90</li>
                 </ul>
 
-                <h4>Understanding Vig (Vigorish or Juice)</h4>
+                <h4>Understanding Vig</h4>
                 <p>The vig is the sportsbook's commission, ensuring they make money regardless of the outcome.</p>
                 <p>To see how vig works, convert the decimal odds into implied probabilities using the formula:</p>
                 <ul>
@@ -1709,7 +1708,6 @@ function loadSuperBoostStrategy() {
                     <p>The total probability sums to 105.26%, instead of 100%, meaning the extra 5.26% represents the sportsbook's built-in edge.</p>
                 </div>
                 <p>If the true probability of each outcome is 50%, the sportsbook effectively inflates the implied probability, ensuring a profit over time.</p>
-                <img src="assets/images/vig-explanation.png" alt="Visual explanation of vigorish" class="strategy-image">
             </section>
 
             <section class="strategy-section">
@@ -1742,7 +1740,6 @@ function loadSuperBoostStrategy() {
                 </div>
 
                 <p>An EV of 0.25 means that, on average, for every 1 unit bet on Outcome A at the boosted odds of 2.50, you can expect to profit 0.25 units in the long run.</p>
-                <img src="assets/images/ev-calculation.png" alt="Expected Value calculation example" class="strategy-image">
             </section>
 
             <section class="strategy-section">
@@ -1751,7 +1748,6 @@ function loadSuperBoostStrategy() {
                 <div class="strategy-highlight">
                     <p>Remember: The key to success is discipline - stick to betting only on super boosts with positive EV and avoid the temptation of regular bets with negative EV.</p>
                 </div>
-                <img src="assets/images/profit-graph.png" alt="Long-term profit potential with super boosts" class="strategy-image">
             </section>
         </article>
     `;
