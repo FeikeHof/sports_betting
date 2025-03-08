@@ -1342,58 +1342,144 @@ footer {
     margin: 0 auto;
     padding: 20px;
     line-height: 1.6;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.strategy-content h2 {
+    color: #2c3e50;
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.strategy-content h2:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(to right, #3498db, #2ecc71);
+    border-radius: 2px;
 }
 
 .strategy-section {
-    margin-bottom: 40px;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2.5rem;
+    padding: 0 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.strategy-section:last-child {
+    border-bottom: none;
 }
 
 .strategy-section h3 {
     color: #2c3e50;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #eee;
+    font-size: 1.8rem;
+    margin: 2rem 0 1.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .strategy-section h4 {
     color: #34495e;
-    margin: 25px 0 15px;
+    font-size: 1.4rem;
+    margin: 1.5rem 0 1rem;
+}
+
+.strategy-section p {
+    color: #444;
+    margin-bottom: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .strategy-section ul {
-    padding-left: 20px;
-    margin: 15px 0;
+    padding-left: 1.5rem;
+    margin: 1.2rem 0;
+    list-style-type: none;
 }
 
 .strategy-section li {
-    margin-bottom: 10px;
+    margin-bottom: 0.8rem;
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.strategy-section li:before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #3498db;
 }
 
 .formula {
-    background-color: #f8f9fa;
-    padding: 15px;
-    margin: 15px 0;
-    border-radius: 6px;
+    background: linear-gradient(to right, #f8f9fa, #fff);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
     border-left: 4px solid #3498db;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .formula p {
-    margin: 5px 0;
-    font-family: monospace;
-    font-size: 1.1em;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2rem;
+    color: #2c3e50;
+}
+
+.strategy-image {
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.strategy-highlight {
+    background: linear-gradient(to right, rgba(52, 152, 219, 0.1), rgba(46, 204, 113, 0.1));
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.strategy-highlight p {
+    margin: 0;
+    font-weight: 500;
+    color: #2c3e50;
 }
 
 @media (max-width: 768px) {
     .strategy-content {
-        padding: 10px;
+        padding: 15px;
+        margin: 10px;
     }
     
-    .strategy-section {
-        padding: 15px;
-        margin-bottom: 20px;
+    .strategy-content h2 {
+        font-size: 1.8rem;
+    }
+    
+    .strategy-section h3 {
+        font-size: 1.5rem;
+    }
+    
+    .strategy-section h4 {
+        font-size: 1.2rem;
+    }
+    
+    .strategy-section p,
+    .strategy-section li {
+        font-size: 1rem;
+    }
+    
+    .formula p {
+        font-size: 1rem;
     }
 } 
