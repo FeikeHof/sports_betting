@@ -547,18 +547,6 @@ async function loadBetHistory() {
             return;
         }
         
-        // Continue with existing code to display bets...
-        // Note: You'll need to adjust property names to match Supabase column names
-        // e.g., bet.user_id instead of bet.userId
-        
-        // Create view toggle buttons
-        const viewToggle = `
-            <div class="view-toggle">
-                <button class="toggle-btn active" data-view="table">Table View</button>
-                <button class="toggle-btn" data-view="cards">Card View</button>
-            </div>
-        `;
-        
         // Create filter buttons
         const filterButtons = `
             <div class="bet-filters">
@@ -589,7 +577,7 @@ async function loadBetHistory() {
             </div>
         `;
         
-        // Generate table rows for bets
+        // Filter the rows
         const tableRows = userBets.map(bet => {
             // Calculate profit/loss
             let profitLoss = 0;
@@ -637,71 +625,6 @@ async function loadBetHistory() {
             `;
         }).join('');
         
-        // Generate cards for bets
-        const betCards = userBets.map(bet => {
-            // Calculate profit/loss
-            let profitLoss = 0;
-            if (bet.outcome === 'win') {
-                const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-                const stake = parseFloat(bet.amount);
-                const totalPayout = stake * odds;
-                profitLoss = totalPayout - stake;  // Subtract stake to get actual profit
-            } else if (bet.outcome === 'loss') {
-                profitLoss = -parseFloat(bet.amount);
-            }
-            
-            // Format profit/loss for display
-            const formattedProfitLoss = bet.outcome === 'pending' 
-                ? 'PENDING' 
-                : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
-            
-            // Format date
-            const betDate = new Date(bet.date);
-            const formattedDate = betDate.toLocaleDateString();
-            
-            return `
-                <div class="bet-card ${bet.outcome}" data-bet-id="${bet.id}">
-                    <div class="bet-card-header">
-                        <span class="bet-date">${formattedDate}</span>
-                        <span class="bet-website">${bet.website}</span>
-                    </div>
-                    <div class="bet-card-body">
-                        <p class="bet-description">${bet.description}</p>
-                        <div class="bet-details">
-                            <div class="bet-detail">
-                                <span class="detail-label">Odds:</span>
-                                <span class="detail-value">${parseFloat(bet.odds).toFixed(2)}</span>
-                            </div>
-                            ${bet.boosted_odds ? `
-                            <div class="bet-detail">
-                                <span class="detail-label">Boosted:</span>
-                                <span class="detail-value">${parseFloat(bet.boosted_odds).toFixed(2)}</span>
-                            </div>
-                            ` : ''}
-                            <div class="bet-detail">
-                                <span class="detail-label">Amount:</span>
-                                <span class="detail-value">€${parseFloat(bet.amount).toFixed(2)}</span>
-                            </div>
-                            <div class="bet-detail">
-                                <span class="detail-label">Outcome:</span>
-                                <span class="detail-value outcome-${bet.outcome}">${bet.outcome.toUpperCase()}</span>
-                            </div>
-                            <div class="bet-detail">
-                                <span class="detail-label">Profit/Loss:</span>
-                                <span class="detail-value ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
-                                    ${formattedProfitLoss}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bet-card-footer">
-                        <button class="btn-edit" onclick="editBet(${bet.id})">Edit</button>
-                        <button class="btn-delete" onclick="confirmDeleteBet(${bet.id})">Delete</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
         // Calculate total bet amount and profit/loss
         const totalBetAmount = userBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
         const totalProfitLoss = userBets.reduce((total, bet) => {
@@ -724,7 +647,6 @@ async function loadBetHistory() {
             
             <div class="history-controls">
                 <div class="controls-row">
-                    ${viewToggle}
                     ${filterButtons}
                 </div>
                 <div class="controls-row">
@@ -733,7 +655,7 @@ async function loadBetHistory() {
                 </div>
             </div>
             
-            <div class="table-container" id="table-view">
+            <div class="table-container">
                 <table class="bet-table">
                     <thead>
                         <tr>
@@ -765,34 +687,7 @@ async function loadBetHistory() {
                     </tfoot>
                 </table>
             </div>
-            
-            <div class="card-container" id="card-view" style="display: none;">
-                ${betCards}
-            </div>
         `;
-        
-        // Add event listeners for view toggle
-        document.querySelectorAll('.toggle-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                document.querySelectorAll('.toggle-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Show/hide views based on button clicked
-                const view = this.getAttribute('data-view');
-                if (view === 'table') {
-                    document.getElementById('table-view').style.display = 'block';
-                    document.getElementById('card-view').style.display = 'none';
-                } else {
-                    document.getElementById('table-view').style.display = 'none';
-                    document.getElementById('card-view').style.display = 'grid';
-                }
-            });
-        });
         
         // Add event listeners for filter buttons
         document.querySelectorAll('.filter-btn').forEach(button => {
@@ -862,13 +757,12 @@ function applyFilters() {
     const outcomeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
     const searchTerm = document.getElementById('bet-search').value.toLowerCase();
     
-    // Get all rows/cards
+    // Get all rows
     const tableRows = document.querySelectorAll('#bet-table-body tr');
-    const cards = document.querySelectorAll('.bet-card');
     
     let visibleBets = [];
     
-    // Filter the rows/cards
+    // Filter the rows
     tableRows.forEach(row => {
         const betId = row.getAttribute('data-bet-id');
         const outcome = row.querySelector('.outcome-cell').classList[1];
@@ -898,28 +792,6 @@ function applyFilters() {
                 boostedOdds: row.cells[4].textContent !== '-' ? parseFloat(row.cells[4].textContent) : null
             });
         }
-    });
-    
-    // Update cards visibility (if using card view)
-    cards.forEach(card => {
-        const betId = card.getAttribute('data-bet-id');
-        const outcome = card.classList[1];
-        const website = card.querySelector('.bet-website').textContent.toLowerCase();
-        const description = card.querySelector('.bet-description').textContent.toLowerCase();
-        
-        let visible = true;
-        
-        // Apply outcome filter
-        if (outcomeFilter !== 'all' && outcome !== outcomeFilter) {
-            visible = false;
-        }
-        
-        // Apply search filter
-        if (searchTerm && !website.includes(searchTerm) && !description.includes(searchTerm)) {
-            visible = false;
-        }
-        
-        card.style.display = visible ? '' : 'none';
     });
     
     // Calculate new summary based on visible bets
@@ -1020,46 +892,6 @@ function sortBets(sortBy, direction) {
     
     // Reorder the rows
     rows.forEach(row => tableBody.appendChild(row));
-    
-    // Also sort the cards if needed
-    sortCards(sortBy, direction);
-}
-
-// Function to sort cards
-function sortCards(sortBy, direction) {
-    const cardContainer = document.getElementById('card-view');
-    const cards = Array.from(cardContainer.querySelectorAll('.bet-card'));
-    
-    cards.sort((a, b) => {
-        let valueA, valueB;
-        
-        switch (sortBy) {
-            case 'date':
-                valueA = new Date(a.querySelector('.bet-date').textContent);
-                valueB = new Date(b.querySelector('.bet-date').textContent);
-                break;
-            case 'website':
-                valueA = a.querySelector('.bet-website').textContent.toLowerCase();
-                valueB = b.querySelector('.bet-website').textContent.toLowerCase();
-                break;
-            case 'description':
-                valueA = a.querySelector('.bet-description').textContent.toLowerCase();
-                valueB = b.querySelector('.bet-description').textContent.toLowerCase();
-                break;
-            // Add other cases as needed
-            default:
-                valueA = valueB = 0;
-        }
-        
-        if (direction === 'asc') {
-            return valueA > valueB ? 1 : -1;
-        } else {
-            return valueA < valueB ? 1 : -1;
-        }
-    });
-    
-    // Reorder the cards
-    cards.forEach(card => cardContainer.appendChild(card));
 }
 
 // Function to load dashboard
