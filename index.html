@@ -6,8 +6,6 @@
     <title>Betting Application</title>
     <!-- Favicon -->
     <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
-    <!-- Google Sign-In API -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js -->
@@ -33,9 +31,11 @@
             <div id="login-container" class="auth-container">
                 <p>Please sign in:</p>
                 <div id="g_id_onload"
-                     data-client_id=""
+                     data-client_id="641086809551-du1r6ebnmt1bunaf76c8e8tm6lcorhhu.apps.googleusercontent.com"
                      data-callback="app.handleCredentialResponse"
-                     data-auto_prompt="false">
+                     data-auto_prompt="false"
+                     data-cancel_on_tap_outside="false"
+                     data-prompt_parent_id="login-container">
                 </div>
                 <div class="g_id_signin"
                      data-type="standard"
@@ -80,5 +80,8 @@
     
     <!-- Fallback for browsers that don't support JavaScript modules -->
     <script nomodule src="legacy-app.js"></script>
+    
+    <!-- Google Sign-In API - Load this AFTER our app initialization -->
+    <script src="https://accounts.google.com/gsi/client" async defer onload="window.googleAPILoaded && window.googleAPILoaded()"></script>
 </body>
 </html> 

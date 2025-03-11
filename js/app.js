@@ -8,10 +8,48 @@ import { showNotification } from './utils/utils.js';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    // Set the Google Client ID from config
+    console.log("DOM Content Loaded - initializing application");
+
+    // Expose functions to window for direct access from HTML - do this FIRST
+    // before any other initialization to ensure the callback is available
+    window.app = {
+        handleCredentialResponse,
+        signOut,
+        handleNavigation,
+        loadNewBetForm,
+        handleWebsiteSelect,
+        saveBet,
+        loadBetHistory,
+        confirmDeleteBet,
+        deleteBetById,
+        editBet,
+        applyFilters,
+        sortBets,
+        loadDashboard,
+        loadUserData,
+        applyDashboardFilters,
+        loadSuperBoostStrategy,
+        showNotification
+    };
+    
+    console.log("Exposed app functions to window");
+    
+    // Set the Google Client ID from config (as backup)
     const googleSignIn = document.getElementById('g_id_onload');
     if (googleSignIn) {
-        googleSignIn.setAttribute('data-client_id', config.googleClientId);
+        console.log("Found Google Sign-In element, configuring...");
+        // Only set if not already present
+        if (!googleSignIn.getAttribute('data-client_id') || googleSignIn.getAttribute('data-client_id') === '') {
+            googleSignIn.setAttribute('data-client_id', config.googleClientId);
+            console.log("Set client ID from config:", config.googleClientId);
+        } else {
+            console.log("Client ID already set in HTML:", googleSignIn.getAttribute('data-client_id'));
+        }
+        googleSignIn.setAttribute('data-itp_support', true);
+        googleSignIn.setAttribute('data-use_fedcm_for_prompt', true);
+        console.log("Google Sign-In configured successfully");
+    } else {
+        console.error("Google Sign-In element not found!");
     }
     
     // Check if user was previously logged in (page refresh)
@@ -33,25 +71,38 @@ document.addEventListener('DOMContentLoaded', function() {
         logoutButton.addEventListener('click', signOut);
     }
     
-    // Expose functions to window for direct access from HTML
-    window.app = {
-        handleCredentialResponse,
-        signOut,
-        handleNavigation,
-        loadNewBetForm,
-        handleWebsiteSelect,
-        saveBet,
-        loadBetHistory,
-        confirmDeleteBet,
-        deleteBetById,
-        editBet,
-        applyFilters,
-        sortBets,
-        loadDashboard,
-        loadUserData,
-        applyDashboardFilters,
-        loadSuperBoostStrategy,
-        showNotification
+    // Explicitly initialize Google Sign-In after our app is ready
+    // Wait for Google API to be loaded
+    window.googleAPILoaded = function() {
+        console.log("Google API loaded, initializing Sign-In...");
+        try {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                google.accounts.id.initialize({
+                    client_id: config.googleClientId,
+                    callback: window.app.handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: false
+                });
+                
+                // Render the button explicitly
+                const buttonContainer = document.querySelector('.g_id_signin');
+                if (buttonContainer) {
+                    google.accounts.id.renderButton(
+                        buttonContainer,
+                        { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rectangular' }
+                    );
+                    console.log("Google Sign-In button rendered manually");
+                } else {
+                    console.error("Google Sign-In button container not found");
+                }
+                
+                console.log("Google Sign-In initialized manually");
+            } else {
+                console.error("Google API is not loaded or missing required objects");
+            }
+        } catch (error) {
+            console.error("Error initializing Google Sign-In:", error);
+        }
     };
     
     console.log("Betting application initialized successfully!");
