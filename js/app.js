@@ -10,6 +10,13 @@ import { showNotification } from './utils/utils.js';
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM Content Loaded - initializing application");
 
+    // Create a global callback function directly on window for Google Sign-In
+    window.handleGoogleSignIn = function(response) {
+        console.log("Global callback triggered, forwarding to handler...");
+        handleCredentialResponse(response);
+    };
+    console.log("Created global callback function on window: handleGoogleSignIn");
+
     // Expose functions to window for direct access from HTML - do this FIRST
     // before any other initialization to ensure the callback is available
     window.app = {
@@ -79,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
                 google.accounts.id.initialize({
                     client_id: config.googleClientId,
-                    callback: window.app.handleCredentialResponse,
+                    callback: window.handleGoogleSignIn,
                     auto_select: false,
                     cancel_on_tap_outside: false
                 });
