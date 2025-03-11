@@ -74,6 +74,7 @@ async function loadBetHistory() {
                             <th class="sortable" data-sort="amount">Amount (€)</th>
                             <th class="sortable" data-sort="outcome">Outcome</th>
                             <th class="sortable" data-sort="profit-loss">Profit/Loss (€)</th>
+                            <th class="sortable" data-sort="ev">Expected Value (€)</th>
                             <th class="sortable" data-sort="note">Note</th>
                             <th>Actions</th>
                         </tr>
@@ -96,6 +97,12 @@ async function loadBetHistory() {
                                 ? 'PENDING' 
                                 : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
                             
+                            // Calculate expected value
+                            const expectedValue = calculateExpectedValue(bet);
+                            const formattedEV = expectedValue >= 0 
+                                ? `+€${expectedValue.toFixed(2)}` 
+                                : `-€${Math.abs(expectedValue).toFixed(2)}`;
+                            
                             // Format date
                             const betDate = new Date(bet.date);
                             const formattedDate = betDate.toLocaleDateString();
@@ -116,6 +123,9 @@ async function loadBetHistory() {
                                     <td class="outcome-cell ${bet.outcome}">${bet.outcome.toUpperCase()}</td>
                                     <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
                                         ${formattedProfitLoss}
+                                    </td>
+                                    <td class="ev-cell ${expectedValue >= 0 ? 'positive' : 'negative'}">
+                                        ${formattedEV}
                                     </td>
                                     <td class="note-cell">${bet.note || '-'}</td>
                                     <td class="actions-cell">
@@ -170,6 +180,7 @@ async function loadBetHistory() {
                                     return total;
                                 }, 0)).toFixed(2)}
                             </td>
+                            <td></td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>
@@ -243,7 +254,7 @@ function applyFilters() {
         const outcome = row.querySelector('.outcome-cell').classList[1];
         const website = row.cells[1].textContent.toLowerCase();
         const description = row.cells[2].textContent.toLowerCase();
-        const note = row.cells[8].textContent.toLowerCase();
+        const note = row.cells[9].textContent.toLowerCase();
         
         let visible = true;
         
@@ -296,6 +307,7 @@ function applyFilters() {
             <td class="profit-loss ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
                 ${totalProfitLoss >= 0 ? '+€' : '-€'}${Math.abs(totalProfitLoss).toFixed(2)}
             </td>
+            <td></td>
             <td colspan="2"></td>
         `;
     }
@@ -354,6 +366,14 @@ function sortBets(sortBy, direction) {
                     valueB = parseFloat(textB.replace(/[+€-]/g, '')) * 
                             (textB.includes('-') ? -1 : 1);
                 }
+                break;
+            case 'ev':
+                const evTextA = a.cells[8].textContent;
+                const evTextB = b.cells[8].textContent;
+                valueA = parseFloat(evTextA.replace(/[+€-]/g, '')) * 
+                        (evTextA.includes('-') ? -1 : 1);
+                valueB = parseFloat(evTextB.replace(/[+€-]/g, '')) * 
+                        (evTextB.includes('-') ? -1 : 1);
                 break;
             default:
                 valueA = valueB = 0;
@@ -417,6 +437,18 @@ async function editBet(id) {
         console.error('Error editing bet:', error);
         showNotification('Error loading bet for editing. Please try again.', 'error');
     }
+}
+
+// Function to calculate the expected value using the formula: 0.95/odds*boosted_odds * amount - amount
+function calculateExpectedValue(bet) {
+    const baseOdds = parseFloat(bet.odds);
+    const boostedOdds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : baseOdds;
+    const amount = parseFloat(bet.amount);
+    
+    // Calculate expected value: 0.95/odds*boosted_odds * amount - amount
+    const expectedValue = (0.95 / baseOdds) * boostedOdds * amount - amount;
+    
+    return expectedValue;
 }
 
 export { 
