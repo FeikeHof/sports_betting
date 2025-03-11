@@ -37,7 +37,7 @@ async function loadBetHistory() {
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="win">Wins</button>
                 <button class="filter-btn" data-filter="loss">Losses</button>
-                <button class="filter-btn" data-filter="pending">PENDING</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
             </div>
         `;
         
@@ -94,7 +94,7 @@ async function loadBetHistory() {
                             
                             // Format profit/loss for display
                             const formattedProfitLoss = bet.outcome === 'pending' 
-                                ? 'PENDING' 
+                                ? 'Pending' 
                                 : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
                             
                             // Calculate expected value
@@ -120,7 +120,7 @@ async function loadBetHistory() {
                                     <td>${parseFloat(bet.odds).toFixed(2)}</td>
                                     <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
                                     <td>€${parseFloat(bet.amount).toFixed(2)}</td>
-                                    <td class="outcome-cell ${bet.outcome}">${bet.outcome.toUpperCase()}</td>
+                                    <td class="outcome-cell ${bet.outcome}">${bet.outcome === 'pending' ? 'Pending' : bet.outcome === 'win' ? 'Win' : 'Loss'}</td>
                                     <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
                                         ${formattedProfitLoss}
                                     </td>
@@ -350,13 +350,13 @@ function sortBets(sortBy, direction) {
                 const textA = a.cells[7].textContent;
                 const textB = b.cells[7].textContent;
                 
-                if (textA === 'PENDING' && textB === 'PENDING') {
+                if (textA === 'Pending' && textB === 'Pending') {
                     valueA = valueB = 0;
-                } else if (textA === 'PENDING') {
+                } else if (textA === 'Pending') {
                     valueA = -Infinity;
                     valueB = parseFloat(textB.replace(/[+€-]/g, '')) * 
                             (textB.includes('-') ? -1 : 1);
-                } else if (textB === 'PENDING') {
+                } else if (textB === 'Pending') {
                     valueA = parseFloat(textA.replace(/[+€-]/g, '')) * 
                             (textA.includes('-') ? -1 : 1);
                     valueB = -Infinity;

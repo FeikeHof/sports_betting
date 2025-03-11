@@ -102,7 +102,7 @@ async function loadDashboard() {
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="win">Wins</button>
                 <button class="filter-btn" data-filter="loss">Losses</button>
-                <button class="filter-btn" data-filter="pending">PENDING</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
             </div>
         `;
         
@@ -353,7 +353,7 @@ function applyDashboardFilters() {
                             <p class="recent-bet-desc">${bet.description}</p>
                             <div class="recent-bet-footer">
                                 <span class="recent-bet-amount">€${parseFloat(bet.amount).toFixed(2)}</span>
-                                <span class="recent-bet-outcome ${bet.outcome}">${bet.outcome.toUpperCase()}</span>
+                                <span class="recent-bet-outcome ${bet.outcome}">${bet.outcome === 'pending' ? 'Pending' : bet.outcome === 'win' ? 'Win' : 'Loss'}</span>
                                 ${bet.outcome !== 'pending' 
                                     ? `<span class="recent-bet-profit ${profitLoss >= 0 ? 'positive' : 'negative'}">
                                         ${profitLoss >= 0 ? '+' : ''}€${profitLoss.toFixed(2)}
