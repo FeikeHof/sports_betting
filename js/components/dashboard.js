@@ -275,7 +275,7 @@ function applyDashboardFilters() {
         
         <!-- Cumulative Profit Chart -->
         <section class="dashboard-section">
-            <h3>Cumulative Profit Over Time</h3>
+            <h3>Cumulative Profit & Expected Value Over Time</h3>
             ${chartData.labels.length > 0 ? 
                 `<div class="chart-container">
                     <canvas id="profitChart"></canvas>
@@ -388,7 +388,7 @@ function prepareCumulativeProfitData(bets) {
         .sort((a, b) => new Date(a.date) - new Date(b.date));
     
     if (completedBets.length < 2) {
-        return { labels: [], data: [] };
+        return { labels: [], data: [], evData: [] };
     }
     
     // Group bets by date
@@ -404,19 +404,23 @@ function prepareCumulativeProfitData(bets) {
         betsByDate[date].push(bet);
     });
     
-    // Calculate profit/loss for each date
+    // Calculate profit/loss and EV for each date
     const labels = [];
     const data = [];
+    const evData = [];
     let cumulativeProfit = 0;
+    let cumulativeEV = 0;
     
     // Process dates in chronological order
     Object.keys(betsByDate)
         .sort((a, b) => new Date(a) - new Date(b))
         .forEach(date => {
             let dailyProfit = 0;
+            let dailyEV = 0;
             
-            // Calculate profit for all bets on this date
+            // Calculate profit and EV for all bets on this date
             betsByDate[date].forEach(bet => {
+                // Calculate actual profit
                 if (bet.outcome === 'win') {
                     const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
                     const stake = parseFloat(bet.amount);
@@ -425,16 +429,25 @@ function prepareCumulativeProfitData(bets) {
                 } else if (bet.outcome === 'loss') {
                     dailyProfit -= parseFloat(bet.amount);
                 }
+                
+                // Calculate expected value
+                const baseOdds = parseFloat(bet.odds);
+                const boostedOdds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : baseOdds;
+                const amount = parseFloat(bet.amount);
+                const expectedValue = (0.95 / baseOdds) * boostedOdds * amount - amount;
+                dailyEV += expectedValue;
             });
             
-            // Add to cumulative profit
+            // Add to cumulative profit and EV
             cumulativeProfit += dailyProfit;
+            cumulativeEV += dailyEV;
             
             labels.push(date);
             data.push(cumulativeProfit.toFixed(2));
+            evData.push(cumulativeEV.toFixed(2));
         });
     
-    return { labels, data };
+    return { labels, data, evData };
 }
 
 // Function to initialize the profit chart
@@ -444,9 +457,12 @@ function initializeProfitChart(chartData) {
     // Determine if the overall trend is positive or negative
     const lastValue = parseFloat(chartData.data[chartData.data.length - 1]);
     const chartColor = lastValue >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
-    const chartBgColor = lastValue >= 0 ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)';
     
-    // Create gradient for the line
+    // Determine color for EV line
+    const lastEVValue = parseFloat(chartData.evData[chartData.evData.length - 1]);
+    const evChartColor = lastEVValue >= 0 ? 'rgba(52, 152, 219, 1)' : 'rgba(155, 89, 182, 1)';
+    
+    // Create gradient for the profit line
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, lastValue >= 0 ? 'rgba(46, 204, 113, 0.4)' : 'rgba(231, 76, 60, 0.4)');
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
@@ -455,21 +471,41 @@ function initializeProfitChart(chartData) {
         type: 'line',
         data: {
             labels: chartData.labels,
-            datasets: [{
-                label: 'Cumulative Profit (€)',
-                data: chartData.data,
-                borderColor: chartColor,
-                backgroundColor: gradient,
-                borderWidth: 3,
-                pointBackgroundColor: chartColor,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                fill: true,
-                tension: 0.2,
-                cubicInterpolationMode: 'monotone'
-            }]
+            datasets: [
+                {
+                    label: 'Cumulative Profit (€)',
+                    data: chartData.data,
+                    borderColor: chartColor,
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: chartColor,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    fill: true,
+                    tension: 0.2,
+                    cubicInterpolationMode: 'monotone',
+                    order: 1
+                },
+                {
+                    label: 'Cumulative Expected Value (€)',
+                    data: chartData.evData,
+                    borderColor: evChartColor,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: evChartColor,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1,
+                    fill: false,
+                    tension: 0.2,
+                    cubicInterpolationMode: 'monotone',
+                    order: 2
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -484,20 +520,21 @@ function initializeProfitChart(chartData) {
                     bodyFont: {
                         size: 13
                     },
-                    padding: 12,
+                    padding: 15,
                     cornerRadius: 6,
+                    displayColors: true,
                     callbacks: {
                         title: function(context) {
-                            return `Date: ${context[0].label}`;
+                            return context[0].label;
                         },
                         label: function(context) {
                             const value = parseFloat(context.raw);
-                            const sign = value >= 0 ? '+' : '';
-                            return `Cumulative Profit: ${sign}€${value.toFixed(2)}`;
-                        },
-                        labelTextColor: function(context) {
-                            const value = parseFloat(context.raw);
-                            return value >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
+                            const valueFormatted = (value >= 0 ? '+€' : '-€') + Math.abs(value).toFixed(2);
+                            if (context.datasetIndex === 0) {
+                                return `Actual Profit/Loss: ${valueFormatted}`;
+                            } else {
+                                return `Expected Value: ${valueFormatted}`;
+                            }
                         }
                     }
                 },
@@ -541,7 +578,7 @@ function initializeProfitChart(chartData) {
                     },
                     title: {
                         display: true,
-                        text: 'Cumulative Profit (€)',
+                        text: 'Value (€)',
                         font: {
                             size: 14,
                             weight: 'bold'
