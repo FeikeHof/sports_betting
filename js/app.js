@@ -6,13 +6,14 @@ import { loadSuperBoostStrategy } from './components/strategy.js';
 import { handleNavigation } from './views/router.js';
 import { showNotification } from './utils/utils.js';
 
+// Define the Google Sign-In callback globally BEFORE any event listeners
+// This ensures it's available immediately when the Google API loads
+window.handleGoogleSignIn = function(response) {
+    handleCredentialResponse(response);
+};
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    // Create a global callback function directly on window for Google Sign-In
-    window.handleGoogleSignIn = function(response) {
-        handleCredentialResponse(response);
-    };
-
     // Expose functions to window for direct access from HTML - do this FIRST
     // before any other initialization to ensure the callback is available
     window.app = {

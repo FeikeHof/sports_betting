@@ -36,7 +36,6 @@
                 <p>Please sign in:</p>
                 <div id="g_id_onload"
                      data-client_id="641086809551-du1r6ebnmt1bunaf76c8e8tm6lcorhhu.apps.googleusercontent.com"
-                     data-callback="handleGoogleSignIn"
                      data-auto_prompt="false"
                      data-cancel_on_tap_outside="false"
                      data-prompt_parent_id="login-container">
@@ -83,6 +82,29 @@
     <script type="module" src="js/app.js"></script>
     
     <!-- Google Sign-In API - Load this AFTER our app initialization -->
-    <script src="https://accounts.google.com/gsi/client" async defer onload="window.googleAPILoaded && window.googleAPILoaded()"></script>
+    <script>
+        // Create a function to load the Google API
+        function loadGoogleAPI() {
+            const script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+            script.onload = function() {
+                if (window.googleAPILoaded) {
+                    window.googleAPILoaded();
+                }
+            };
+            document.body.appendChild(script);
+        }
+        
+        // When the document is ready and our app.js has loaded, load the Google API
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(loadGoogleAPI, 100); // Small delay to ensure app.js finishes loading
+        } else {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(loadGoogleAPI, 100);
+            });
+        }
+    </script>
 </body>
 </html> 
