@@ -7,7 +7,6 @@ let userProfile = null;
 
 // Function to handle Google Sign-In response
 async function handleCredentialResponse(response) {
-    console.log("Google Sign-In callback triggered", response);
     try {
         // Show a notification that we're processing the sign-in
         showNotification("Signing in...", "info");
@@ -24,11 +23,8 @@ async function handleCredentialResponse(response) {
             return;
         }
         
-        console.log("Supabase auth successful", data);
-        
         // Decode the JWT token to get user information
         const responsePayload = parseJwt(response.credential);
-        console.log("JWT decoded:", responsePayload);
         
         // Store user profile information
         userProfile = {
@@ -38,47 +34,12 @@ async function handleCredentialResponse(response) {
             picture: responsePayload.picture
         };
         
-        console.log("About to update UI...");
-        
-        // Update UI to show logged in state with a small delay to ensure DOM is ready
-        setTimeout(() => {
-            try {
-                const loginContainer = document.getElementById('login-container');
-                const userInfoContainer = document.getElementById('user-info');
-                
-                if (loginContainer) {
-                    loginContainer.style.display = 'none';
-                    console.log("Login container hidden");
-                } else {
-                    console.error("Login container element not found!");
-                }
-                
-                if (userInfoContainer) {
-                    userInfoContainer.style.display = 'block';
-                    console.log("User info container shown");
-                } else {
-                    console.error("User info container element not found!");
-                }
-                
-                // Set user information in the profile section
-                const userNameEl = document.getElementById('user-name');
-                const userEmailEl = document.getElementById('user-email');
-                const userPictureEl = document.getElementById('user-picture');
-                
-                if (userNameEl) userNameEl.textContent = userProfile.name;
-                if (userEmailEl) userEmailEl.textContent = userProfile.email;
-                if (userPictureEl) userPictureEl.src = userProfile.picture;
-                
-                console.log("UI updated successfully");
-            } catch (error) {
-                console.error("Error updating UI:", error);
-            }
-        }, 100);
+        // Update UI using our helper function
+        updateUIforLoggedInUser(userProfile);
         
         // Store authentication in session storage
         sessionStorage.setItem('userProfile', JSON.stringify(userProfile));
         
-        console.log("User signed in:", userProfile);
         showNotification("Successfully signed in as " + userProfile.name, "success");
         
         // Load user data
@@ -103,7 +64,6 @@ function parseJwt(token) {
 
 // Function to sign out
 async function signOut() {
-    console.log("Sign out initiated");
     try {
         // Sign out from Supabase
         const { error } = await supabaseClient.auth.signOut();
@@ -132,13 +92,11 @@ async function signOut() {
         if (userEmailEl) userEmailEl.textContent = '';
         if (userPictureEl) userPictureEl.src = '';
         
-        console.log("User signed out");
         showNotification("Successfully signed out", "success");
         
         // Revoke Google authentication if Google API is available
         if (typeof google !== 'undefined' && google.accounts) {
             google.accounts.id.disableAutoSelect();
-            console.log("Google auto-select disabled");
         }
         
         // Force reload of the page to ensure clean state
@@ -153,71 +111,121 @@ async function signOut() {
 }
 
 // Function to check if user is already logged in
-function checkLoginStatus() {
-    console.log("Checking login status...");
-    const savedProfile = sessionStorage.getItem('userProfile');
-    if (savedProfile) {
-        try {
-            console.log("Found saved profile:", savedProfile);
-            userProfile = JSON.parse(savedProfile);
-            
-            // Update UI to show logged in state
-            const loginContainer = document.getElementById('login-container');
-            const userInfoContainer = document.getElementById('user-info');
-            
-            if (loginContainer) {
-                loginContainer.style.display = 'none';
-                console.log("Login container hidden by checkLoginStatus");
-            } else {
-                console.error("Login container element not found in checkLoginStatus!");
-            }
-            
-            if (userInfoContainer) {
-                userInfoContainer.style.display = 'block';
-                console.log("User info container shown by checkLoginStatus");
-            } else {
-                console.error("User info container element not found in checkLoginStatus!");
-            }
-            
-            // Set user information in the profile section
-            const userNameEl = document.getElementById('user-name');
-            const userEmailEl = document.getElementById('user-email');
-            const userPictureEl = document.getElementById('user-picture');
-            
-            if (userNameEl) {
-                userNameEl.textContent = userProfile.name;
-                console.log("Set user name:", userProfile.name);
-            } else {
-                console.error("User name element not found!");
-            }
-            
-            if (userEmailEl) {
-                userEmailEl.textContent = userProfile.email;
-                console.log("Set user email:", userProfile.email);
-            } else {
-                console.error("User email element not found!");
-            }
-            
-            if (userPictureEl) {
-                userPictureEl.src = userProfile.picture;
-                console.log("Set user picture:", userProfile.picture);
-            } else {
-                console.error("User picture element not found!");
-            }
-            
-            // Load user data
-            console.log("About to load user data...");
-            loadUserData();
-            
-            return true;
-        } catch (error) {
-            console.error("Error in checkLoginStatus:", error);
-            // Invalid saved profile, clear it
-            sessionStorage.removeItem('userProfile');
+async function checkLoginStatus() {
+    try {
+        // First check if there's an active Supabase session
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        
+        if (error) {
+            console.error("Error checking session:", error);
+            return false;
         }
+        
+        if (!session) {
+            // Clear any outdated storage data
+            sessionStorage.removeItem('userProfile');
+            return false;
+        }
+        
+        // We have a valid session, now check if we have the profile info
+        let savedProfile = sessionStorage.getItem('userProfile');
+        
+        if (!savedProfile) {
+            // We have a session but no saved profile, try to get user data from Supabase
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            
+            if (user) {
+                // Create minimal profile from Supabase user data
+                savedProfile = JSON.stringify({
+                    id: user.id,
+                    email: user.email,
+                    name: user.user_metadata?.full_name || user.email,
+                    picture: user.user_metadata?.avatar_url || 'assets/images/default-avatar.png'
+                });
+                
+                // Save this for future use
+                sessionStorage.setItem('userProfile', savedProfile);
+            } else {
+                return false;
+            }
+        }
+        
+        // Parse and use the profile data
+        userProfile = JSON.parse(savedProfile);
+        
+        // Update UI to show logged in state
+        updateUIforLoggedInUser(userProfile);
+        
+        // Hide the Google Sign-In button if present
+        hideGoogleSignIn();
+        
+        // Load user data
+        loadUserData();
+        
+        return true;
+    } catch (error) {
+        console.error("Error checking login status:", error);
+        // Clear any saved profile in case of errors
+        sessionStorage.removeItem('userProfile');
+        return false;
     }
-    console.log("No saved profile or error occurred, user is not logged in");
-    return false;
+}
+
+// Helper function to update UI for logged in user
+function updateUIforLoggedInUser(profile) {
+    const loginContainer = document.getElementById('login-container');
+    const userInfoContainer = document.getElementById('user-info');
+    
+    if (loginContainer) {
+        loginContainer.style.display = 'none';
+    } else {
+        console.error("Login container element not found in checkLoginStatus!");
+    }
+    
+    if (userInfoContainer) {
+        userInfoContainer.style.display = 'block';
+    } else {
+        console.error("User info container element not found in checkLoginStatus!");
+    }
+    
+    // Set user information in the profile section
+    const userNameEl = document.getElementById('user-name');
+    const userEmailEl = document.getElementById('user-email');
+    const userPictureEl = document.getElementById('user-picture');
+    
+    if (userNameEl) {
+        userNameEl.textContent = profile.name;
+    } else {
+        console.error("User name element not found!");
+    }
+    
+    if (userEmailEl) {
+        userEmailEl.textContent = profile.email;
+    } else {
+        console.error("User email element not found!");
+    }
+    
+    if (userPictureEl) {
+        userPictureEl.src = profile.picture;
+    } else {
+        console.error("User picture element not found!");
+    }
+}
+
+// Helper function to hide Google Sign-In elements
+function hideGoogleSignIn() {
+    // Hide any Google Sign-In elements that might be visible
+    const gSignInElements = document.querySelectorAll('.g_id_signin');
+    if (gSignInElements.length > 0) {
+        gSignInElements.forEach(element => {
+            element.style.display = 'none';
+        });
+    }
+    
+    // Try to disable Google Sign-In prompt as well
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        google.accounts.id.cancel();
+    }
 }
 
 // Function to get current user profile

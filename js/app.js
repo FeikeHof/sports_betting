@@ -8,14 +8,10 @@ import { showNotification } from './utils/utils.js';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM Content Loaded - initializing application");
-
     // Create a global callback function directly on window for Google Sign-In
     window.handleGoogleSignIn = function(response) {
-        console.log("Global callback triggered, forwarding to handler...");
         handleCredentialResponse(response);
     };
-    console.log("Created global callback function on window: handleGoogleSignIn");
 
     // Expose functions to window for direct access from HTML - do this FIRST
     // before any other initialization to ensure the callback is available
@@ -39,28 +35,29 @@ document.addEventListener('DOMContentLoaded', function() {
         showNotification
     };
     
-    console.log("Exposed app functions to window");
-    
     // Set the Google Client ID from config (as backup)
     const googleSignIn = document.getElementById('g_id_onload');
     if (googleSignIn) {
-        console.log("Found Google Sign-In element, configuring...");
         // Only set if not already present
         if (!googleSignIn.getAttribute('data-client_id') || googleSignIn.getAttribute('data-client_id') === '') {
             googleSignIn.setAttribute('data-client_id', config.googleClientId);
-            console.log("Set client ID from config:", config.googleClientId);
-        } else {
-            console.log("Client ID already set in HTML:", googleSignIn.getAttribute('data-client_id'));
         }
         googleSignIn.setAttribute('data-itp_support', true);
         googleSignIn.setAttribute('data-use_fedcm_for_prompt', true);
-        console.log("Google Sign-In configured successfully");
     } else {
         console.error("Google Sign-In element not found!");
     }
     
     // Check if user was previously logged in (page refresh)
-    checkLoginStatus();
+    checkLoginStatus().then(isLoggedIn => {
+        // If user is logged in, we don't need to show Google Sign-In
+        if (isLoggedIn && typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+            // Cancel any pending prompts
+            google.accounts.id.cancel();
+        }
+    }).catch(error => {
+        console.error("Error checking login status:", error);
+    });
     
     // Update navigation event listeners
     const navLinks = document.querySelectorAll('.sidebar nav ul li a');
@@ -81,7 +78,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Explicitly initialize Google Sign-In after our app is ready
     // Wait for Google API to be loaded
     window.googleAPILoaded = function() {
-        console.log("Google API loaded, initializing Sign-In...");
         try {
             if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
                 google.accounts.id.initialize({
@@ -91,19 +87,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     cancel_on_tap_outside: false
                 });
                 
-                // Render the button explicitly
-                const buttonContainer = document.querySelector('.g_id_signin');
-                if (buttonContainer) {
-                    google.accounts.id.renderButton(
-                        buttonContainer,
-                        { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rectangular' }
-                    );
-                    console.log("Google Sign-In button rendered manually");
-                } else {
-                    console.error("Google Sign-In button container not found");
-                }
+                // Check if user is already logged in
+                const isUserLoggedIn = sessionStorage.getItem('userProfile') !== null;
                 
-                console.log("Google Sign-In initialized manually");
+                // Only render the button if user is not logged in
+                if (!isUserLoggedIn) {
+                    // Render the button explicitly
+                    const buttonContainer = document.querySelector('.g_id_signin');
+                    if (buttonContainer) {
+                        google.accounts.id.renderButton(
+                            buttonContainer,
+                            { theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rectangular' }
+                        );
+                    } else {
+                        console.error("Google Sign-In button container not found");
+                    }
+                }
             } else {
                 console.error("Google API is not loaded or missing required objects");
             }
@@ -111,8 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("Error initializing Google Sign-In:", error);
         }
     };
-    
-    console.log("Betting application initialized successfully!");
 });
 
 export default window.app;
