@@ -1,0 +1,224 @@
+/* Responsive Styles
+-------------------------------------------------- */
+
+/* Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+    .dashboard-section {
+        padding: 15px;
+    }
+}
+
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+    .stats-container {
+        flex-wrap: wrap;
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .dashboard-container {
+        padding: 10px;
+    }
+    
+    .dashboard-section {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .controls-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .search-container, .date-filter {
+        width: 100%;
+    }
+    
+    #bet-search {
+        width: 100%;
+    }
+    
+    .website-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .bet-table th,
+    .bet-table td {
+        padding: 10px 8px;
+    }
+    
+    .history-controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .sidebar nav ul li {
+        margin-bottom: 0;
+    }
+    
+    .sidebar h2 {
+        display: none;
+    }
+    
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+    
+    .main-content header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .bet-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .bet-table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    .bet-table th:nth-child(3),
+    .bet-table td:nth-child(3) {
+        display: none;
+    }
+    
+    .stats-container {
+        flex-direction: column;
+    }
+    
+    .website-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-legend {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+    
+    .best-worst-bets {
+        flex-direction: column;
+    }
+    
+    .actions-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-edit,
+    .btn-delete {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Strategy page responsiveness */
+    .strategy-content {
+        padding: 15px;
+    }
+    
+    .strategy-content h2 {
+        font-size: 1.6rem;
+    }
+    
+    .strategy-section h3 {
+        font-size: 1.3rem;
+    }
+    
+    .strategy-section h4 {
+        font-size: 1.1rem;
+    }
+    
+    .strategy-section p,
+    .strategy-section li {
+        font-size: 1rem;
+    }
+    
+    .formula p {
+        font-size: 0.95rem;
+    }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .sidebar {
+        padding: 15px 10px;
+    }
+    
+    .sidebar nav ul li a {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .main-content {
+        padding: 10px;
+    }
+    
+    .main-content header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .stats-container {
+        gap: 10px;
+    }
+    
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        margin: 0;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .bet-table th:nth-child(4),
+    .bet-table td:nth-child(4),
+    .bet-table th:nth-child(5),
+    .bet-table td:nth-child(5),
+    .bet-table th:nth-child(9),
+    .bet-table td:nth-child(9) {
+        display: none;
+    }
+} 

@@ -1,0 +1,74 @@
+/* Authentication Styles
+-------------------------------------------------- */
+
+#user-auth {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #4a6380;
+}
+
+.auth-container {
+    padding: 15px 0;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#user-picture {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 2px solid #3498db;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-details p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+}
+
+#user-name {
+    font-weight: bold;
+    color: #ecf0f1;
+}
+
+#user-email {
+    opacity: 0.8;
+    font-size: 0.8rem;
+}
+
+#logout-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#logout-button:hover {
+    background-color: #c0392b;
+}
+
+.g_id_signin {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+#login-container p {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ecf0f1;
+} 

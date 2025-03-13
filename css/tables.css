@@ -1,0 +1,143 @@
+/* Table Styles
+-------------------------------------------------- */
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.bet-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.bet-table th,
+.bet-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f1f1;
+    text-align: left;
+}
+
+.bet-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.bet-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.bet-table .description-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.bet-table .description-cell:hover {
+    white-space: normal;
+    overflow: visible;
+    max-width: 300px;
+}
+
+.bet-table .outcome-cell {
+    font-weight: 600;
+}
+
+.bet-table .outcome-cell.win {
+    color: #27ae60;
+}
+
+.bet-table .outcome-cell.loss {
+    color: #e74c3c;
+}
+
+.bet-table .outcome-cell.pending {
+    color: #f39c12;
+}
+
+.bet-table .profit-loss {
+    font-weight: 600;
+}
+
+.bet-table .profit-loss.positive {
+    color: #27ae60;
+}
+
+.bet-table .profit-loss.negative {
+    color: #e74c3c;
+}
+
+.bet-table .profit-loss.pending {
+    color: #f39c12;
+    font-style: italic;
+}
+
+.bet-table .actions-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.bet-table tfoot {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.bet-table .summary-label {
+    text-align: right;
+    font-weight: 600;
+}
+
+.bet-table .note-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+.bet-table .note-cell:hover {
+    white-space: normal;
+    overflow: visible;
+    max-width: 300px;
+}
+
+/* Table sorting */
+.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 20px;
+}
+
+.sortable:hover {
+    background-color: #eaecef;
+}
+
+.sort-icon {
+    position: absolute;
+    right: 8px;
+    line-height: 20px;
+}
+
+/* EV styling */
+.bet-table .ev-cell {
+    font-weight: 600;
+}
+
+.bet-table .ev-cell.positive {
+    color: #27ae60;
+}
+
+.bet-table .ev-cell.negative {
+    color: #e74c3c;
+} 

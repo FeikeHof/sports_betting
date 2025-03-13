@@ -1,0 +1,30 @@
+/* Main CSS file
+   This file imports all the modular CSS components
+-------------------------------------------------- */
+
+/* Base styles */
+@import 'base.css';
+
+/* Layout */
+@import 'layout.css';
+
+/* Authentication */
+@import 'auth.css';
+
+/* Forms */
+@import 'forms.css';
+
+/* Tables */
+@import 'tables.css';
+
+/* Components */
+@import 'components.css';
+
+/* Dashboard */
+@import 'dashboard.css';
+
+/* Strategy */
+@import 'strategy.css';
+
+/* Media Queries */
+@import 'responsive.css'; 

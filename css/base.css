@@ -1,0 +1,58 @@
+/* Base Styles, Reset and Typography
+-------------------------------------------------- */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #2980b9;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* Common color utilities */
+.positive {
+    color: #27ae60;
+}
+
+.negative {
+    color: #e74c3c;
+}
+
+.pending {
+    color: #f39c12;
+}
+
+/* Common text utilities */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-left {
+    text-align: left;
+} 

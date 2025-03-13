@@ -1,0 +1,170 @@
+/* Component Styles
+-------------------------------------------------- */
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #6c7a7d;
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+/* Action buttons for bet history */
+.btn-edit,
+.btn-delete {
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 3px;
+    transition: all 0.2s ease;
+}
+
+.btn-edit {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-edit:before {
+    content: "✎";
+    margin-right: 4px;
+}
+
+.btn-edit:hover {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.btn-delete:before {
+    content: "✕";
+    margin-right: 4px;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+}
+
+.btn-edit:active,
+.btn-delete:active {
+    transform: translateY(0);
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
+}
+
+.notification.info {
+    background-color: #3498db;
+}
+
+/* Filter Buttons */
+.bet-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Search */
+.search-container {
+    display: flex;
+    gap: 10px;
+}
+
+#bet-search {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 0.95rem;
+}
+
+#search-button {
+    padding: 10px 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+} 

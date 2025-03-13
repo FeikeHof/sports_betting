@@ -1,0 +1,262 @@
+/* Dashboard Styles
+-------------------------------------------------- */
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.dashboard-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.dashboard-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f1f1;
+    color: #2c3e50;
+    font-size: 1.3rem;
+}
+
+.chart-container {
+    position: relative; 
+    height: 300px;
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #7f8c8d;
+}
+
+/* Stats Styling */
+.stats-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.stat-box {
+    flex: 1;
+    min-width: 140px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-box.positive {
+    border-left: 4px solid #27ae60;
+}
+
+.stat-box.negative {
+    border-left: 4px solid #e74c3c;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.stat-box.positive .stat-value {
+    color: #27ae60;
+}
+
+.stat-box.negative .stat-value {
+    color: #e74c3c;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* Website Performance */
+.website-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.website-stat-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.website-stat-card h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 10px;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-item .positive {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.stat-item .negative {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+/* Recent Bets */
+.recent-bets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recent-bet {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid #3498db;
+}
+
+.recent-bet-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.recent-bet-date {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+}
+
+.recent-bet-website {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.recent-bet-desc {
+    margin: 10px 0;
+    color: #2c3e50;
+}
+
+.recent-bet-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    gap: 10px;
+}
+
+.recent-bet-amount {
+    font-weight: 600;
+}
+
+.recent-bet-outcome {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recent-bet-outcome.win {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #27ae60;
+}
+
+.recent-bet-outcome.loss {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+}
+
+.recent-bet-outcome.pending {
+    background-color: rgba(243, 156, 18, 0.2);
+    color: #f39c12;
+}
+
+.recent-bet-profit.positive {
+    color: #27ae60;
+}
+
+.recent-bet-profit.negative {
+    color: #e74c3c;
+}
+
+.view-all-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Bet types/status */
+.recent-bet.win {
+    border-left-color: #27ae60;
+}
+
+.recent-bet.loss {
+    border-left-color: #e74c3c;
+}
+
+.recent-bet.pending {
+    border-left-color: #f39c12;
+}
+
+/* User summary */
+.user-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.action-buttons button {
+    flex: 1;
+} 

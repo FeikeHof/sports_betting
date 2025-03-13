@@ -1,0 +1,107 @@
+/* Form Styles
+-------------------------------------------------- */
+
+.bet-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    padding: 0 10px;
+    min-width: 200px;
+}
+
+.bet-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.bet-form input,
+.bet-form select {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    background-color: white;
+}
+
+.bet-form input:focus,
+.bet-form select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.bet-form textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.bet-form textarea#note {
+    min-height: 80px;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+    gap: 15px;
+}
+
+.website-input-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.website-input-group select {
+    flex: 1;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+}
+
+.website-input-group input {
+    flex: 1;
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+}
+
+.website-input-group select:focus,
+.website-input-group input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.form-hint {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+    font-style: italic;
+} 
