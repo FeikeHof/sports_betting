@@ -1,0 +1,122 @@
+/* Form Animation Styles
+-------------------------------------------------- */
+
+/* Fade in animations */
+@keyframes formFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes formFieldFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Apply animations to form elements */
+.form-container {
+  animation: formFadeIn 0.6s ease forwards;
+}
+
+.form-section {
+  animation: formFieldFadeIn 0.5s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.form-section:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.form-section:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.form-section:nth-child(4) {
+  animation-delay: 0.5s;
+}
+
+.form-actions {
+  animation: formFieldFadeIn 0.5s ease forwards;
+  animation-delay: 0.6s;
+  opacity: 0;
+}
+
+/* Enhanced Focus Effects */
+.bet-form input:focus,
+.bet-form select:focus,
+.bet-form textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Button ripple effect */
+.bet-form .btn-primary,
+.bet-form .btn-secondary {
+  position: relative;
+  overflow: hidden;
+}
+
+.bet-form .btn-primary:after,
+.bet-form .btn-secondary:after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.bet-form .btn-primary:focus:not(:active):after,
+.bet-form .btn-secondary:focus:not(:active):after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+/* Input field animations */
+.bet-form input:not([type="date"]),
+.bet-form select,
+.bet-form textarea {
+  transition: all 0.3s ease;
+}
+
+.bet-form input:not([type="date"]):hover,
+.bet-form select:hover,
+.bet-form textarea:hover {
+  border-color: #3498db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.1);
+}
+
+/* Label animations */
+.bet-form label {
+  transition: all 0.3s ease;
+}
+
+.bet-form input:focus ~ label,
+.bet-form select:focus ~ label,
+.bet-form textarea:focus ~ label {
+  color: #3498db;
+  transform: translateY(-3px);
+} 

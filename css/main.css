@@ -26,5 +26,8 @@
 /* Strategy */
 @import 'strategy.css';
 
+/* Animations and Effects */
+@import 'animation.css';
+
 /* Media Queries */
 @import 'responsive.css'; 
