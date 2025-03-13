@@ -204,6 +204,15 @@ function applyDashboardFilters() {
         }
         return total;
     }, 0);
+    
+    // Calculate total expected value
+    const totalExpectedValue = filteredBets.reduce((total, bet) => {
+        const baseOdds = parseFloat(bet.odds);
+        const boostedOdds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : baseOdds;
+        const amount = parseFloat(bet.amount);
+        const expectedValue = (0.95 / baseOdds) * boostedOdds * amount - amount;
+        return total + expectedValue;
+    }, 0);
         
     const roi = totalAmount > 0 ? ((totalProfitLoss / totalAmount) * 100).toFixed(1) : '0.0';
         
@@ -217,7 +226,8 @@ function applyDashboardFilters() {
                 wins: 0,
                 losses: 0,
                 pending: 0,
-                profitLoss: 0
+                profitLoss: 0,
+                expectedValue: 0
             };
         }
         
@@ -237,6 +247,13 @@ function applyDashboardFilters() {
         } else {
             stats.pending++;
         }
+        
+        // Calculate and add expected value for this bet
+        const baseOdds = parseFloat(bet.odds);
+        const boostedOdds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : baseOdds;
+        const amount = parseFloat(bet.amount);
+        const expectedValue = (0.95 / baseOdds) * boostedOdds * amount - amount;
+        stats.expectedValue += expectedValue;
     });
         
     // Prepare chart data
@@ -257,6 +274,10 @@ function applyDashboardFilters() {
                 <div class="stat-box">
                     <div class="stat-value">€${totalAmount.toFixed(2)}</div>
                     <div class="stat-label">Total Amount Bet</div>
+                </div>
+                   <div class="stat-box ${totalExpectedValue >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-value">€${totalExpectedValue.toFixed(2)}</div>
+                    <div class="stat-label">Expected Value</div>
                 </div>
                 <div class="stat-box ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
                     <div class="stat-value">€${totalProfitLoss.toFixed(2)}</div>
@@ -320,14 +341,20 @@ function applyDashboardFilters() {
                                 <span class="value">${stats.totalBets > 0 ? ((stats.wins / stats.totalBets) * 100).toFixed(1) : '0.0'}%</span>
                             </div>
                             <div class="stat-item">
-                                <span class="label">Profit/Loss:</span>
-                                <span class="value ${stats.profitLoss >= 0 ? 'positive' : 'negative'}">
-                                    €${stats.profitLoss.toFixed(2)}
+                                <span class="label">Expected Value:</span>
+                                <span class="value ${stats.expectedValue >= 0 ? 'positive' : 'negative'}">
+                                    €${stats.expectedValue.toFixed(2)}
                                 </span>
                             </div>
                             <div class="stat-item">
                                 <span class="label">Record:</span>
                                 <span class="value">${stats.wins}W-${stats.losses}L-${stats.pending}P</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Profit/Loss:</span>
+                                <span class="value ${stats.profitLoss >= 0 ? 'positive' : 'negative'}">
+                                    €${stats.profitLoss.toFixed(2)}
+                                </span>
                             </div>
                         </div>
                     </div>
