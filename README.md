@@ -17,7 +17,6 @@ sports_betting/
 ├── index.html               # Main HTML entry point
 ├── styles.css               # CSS styles
 ├── config.js                # App configuration (API keys, etc.)
-├── legacy-app.js            # Fallback for browsers without module support
 ├── js/                      # JavaScript modules
 │   ├── app.js               # Main application entry point
 │   ├── auth/                # Authentication modules
