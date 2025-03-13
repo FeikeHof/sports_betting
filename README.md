@@ -60,3 +60,30 @@ This application uses JavaScript modules and requires a modern browser:
 ## License
 
 MIT 
+
+## Linting with ESLint
+
+This project uses ESLint to maintain code quality and consistent style. To run the linter:
+
+```bash
+# Check for linting errors
+npm run lint
+
+# Fix automatically fixable issues
+npm run lint:fix
+```
+
+The project follows a customized version of the Airbnb JavaScript style guide with some modifications for ease of development:
+
+- Console statements are allowed (though they should be used sparingly)
+- Import extensions are required (necessary for browser-based ES modules)
+- Maximum line length is set to 120 characters
+- Some rules are relaxed for CSS class names and property manipulation
+
+### VS Code Integration
+
+For the best development experience, install the ESLint extension for VS Code. The project includes settings to enable automatic fixing of problems when you save files. To install:
+
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "ESLint" and install the extension by Microsoft 

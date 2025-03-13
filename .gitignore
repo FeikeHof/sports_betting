@@ -1,3 +1,9 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
 # Environment variables
 .env
 .env.local
@@ -5,16 +11,12 @@
 # Configuration files with sensitive data
 config.js
 
-# Dependency directories
-node_modules/
-
-# Debug logs
-npm-debug.log*
-
 # IDE and editor folders
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# System files
 .DS_Store
 Thumbs.db 

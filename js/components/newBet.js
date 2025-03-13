@@ -5,29 +5,29 @@ import { handleNavigation } from '../views/router.js';
 
 // Function to get unique websites from existing bets
 async function getUniqueWebsites() {
-    try {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        const userBets = await fetchBets(user.id);
-        const websites = [...new Set(userBets.map(bet => bet.website))].sort();
-        return websites;
-    } catch (error) {
-        console.error('Error fetching websites:', error);
-        return [];
-    }
+  try {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const userBets = await fetchBets(user.id);
+    const websites = [...new Set(userBets.map((bet) => bet.website))].sort();
+    return websites;
+  } catch (error) {
+    console.error('Error fetching websites:', error);
+    return [];
+  }
 }
 
 // Function to load new bet form
 async function loadNewBetForm(betToEdit = null) {
-    const contentSection = document.getElementById('content');
-    
-    // Get unique websites
-    const websites = await getUniqueWebsites();
-    
-    // Set form title based on whether we're editing or creating
-    const formTitle = betToEdit ? 'Edit Bet' : 'Create New Bet';
-    const submitButtonText = betToEdit ? 'Update Bet' : 'Save Bet';
-    
-    contentSection.innerHTML = `
+  const contentSection = document.getElementById('content');
+
+  // Get unique websites
+  const websites = await getUniqueWebsites();
+
+  // Set form title based on whether we're editing or creating
+  const formTitle = betToEdit ? 'Edit Bet' : 'Create New Bet';
+  const submitButtonText = betToEdit ? 'Update Bet' : 'Save Bet';
+
+  contentSection.innerHTML = `
         <h2>${formTitle}</h2>
         <form id="new-bet-form" class="bet-form" ${betToEdit ? `data-edit-id="${betToEdit.id}"` : ''}>
             <div class="form-group">
@@ -35,7 +35,7 @@ async function loadNewBetForm(betToEdit = null) {
                 <div class="website-input-group">
                     <select id="website-select" onchange="window.app.handleWebsiteSelect(this.value)">
                         <option value="">-- Select Website --</option>
-                        ${websites.map(site => `
+                        ${websites.map((site) => `
                             <option value="${site}" ${betToEdit && betToEdit.website === site ? 'selected' : ''}>${site}</option>
                         `).join('')}
                         <option value="new">+ Add New Website</option>
@@ -101,114 +101,114 @@ async function loadNewBetForm(betToEdit = null) {
             </div>
         </form>
     `;
-    
-    // Add form submission handler
-    document.getElementById('new-bet-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveBet();
+
+  // Add form submission handler
+  document.getElementById('new-bet-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveBet();
+  });
+
+  // Add cancel button handler if editing
+  if (betToEdit) {
+    document.getElementById('cancel-edit').addEventListener('click', () => {
+      handleNavigation('bet-history');
     });
-    
-    // Add cancel button handler if editing
-    if (betToEdit) {
-        document.getElementById('cancel-edit').addEventListener('click', function() {
-            handleNavigation('bet-history');
-        });
-    }
+  }
 }
 
 // Function to handle website selection
 function handleWebsiteSelect(value) {
-    const websiteInput = document.getElementById('website');
-    const websiteSelect = document.getElementById('website-select');
-    
-    if (value === 'new') {
-        // Show input field for new website
-        websiteInput.style.display = 'block';
-        websiteInput.value = '';
-        websiteInput.focus();
-    } else if (value === '') {
-        // Empty selection
-        websiteInput.style.display = 'none';
-        websiteInput.value = '';
-    } else {
-        // Existing website selected
-        websiteInput.style.display = 'none';
-        websiteInput.value = value;
-    }
+  const websiteInput = document.getElementById('website');
+  const websiteSelect = document.getElementById('website-select');
+
+  if (value === 'new') {
+    // Show input field for new website
+    websiteInput.style.display = 'block';
+    websiteInput.value = '';
+    websiteInput.focus();
+  } else if (value === '') {
+    // Empty selection
+    websiteInput.style.display = 'none';
+    websiteInput.value = '';
+  } else {
+    // Existing website selected
+    websiteInput.style.display = 'none';
+    websiteInput.value = value;
+  }
 }
 
 // Function to save bet
 async function saveBet() {
-    try {
-        // First, check if user is authenticated
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        
-        if (!user) {
-            showNotification('Please sign in to save bets', 'error');
-            return;
-        }
-        
-        const form = document.getElementById('new-bet-form');
-        const formData = new FormData(form);
-        const betData = Object.fromEntries(formData.entries());
-        
-        // Check website field
-        const websiteInput = document.getElementById('website');
-        betData.website = websiteInput.value;
-        
-        // Validate form data
-        if (!validateBetData(betData)) {
-            return; // Stop if validation fails
-        }
-        
-        // Check if we're in edit mode
-        const editId = form.getAttribute('data-edit-id');
-        
-        // Add user ID to the bet data
-        betData.user_id = user.id;
-        
-        let success = false;
-        
-        if (editId) {
-            success = await updateBetInSupabase(editId, betData);
-        } else {
-            // Format the data to match the database schema
-            const formattedData = {
-                user_id: user.id,
-                website: betData.website,
-                description: betData.description,
-                odds: parseFloat(betData.odds),
-                boosted_odds: betData['boosted-odds'] ? parseFloat(betData['boosted-odds']) : null,
-                amount: parseFloat(betData.amount),
-                date: new Date(betData.date).toISOString(),
-                outcome: betData.outcome,
-                note: betData.note || null  // Add note field
-            };
-            
-            // Insert the bet into Supabase
-            const { error } = await supabaseClient
-                .from('bets')
-                .insert(formattedData);
-            
-            success = !error;
-            
-            if (error) {
-                console.error('Error saving bet:', error);
-            }
-        }
-        
-        if (success) {
-            showNotification('Bet saved successfully!', 'success');
-            setTimeout(() => {
-                handleNavigation('bet-history');
-            }, 1500);
-        } else {
-            showNotification('Error saving bet. Please try again.', 'error');
-        }
-    } catch (error) {
-        console.error('Error in saveBet:', error);
-        showNotification('Error saving bet. Please try again.', 'error');
+  try {
+    // First, check if user is authenticated
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+      showNotification('Please sign in to save bets', 'error');
+      return;
     }
+
+    const form = document.getElementById('new-bet-form');
+    const formData = new FormData(form);
+    const betData = Object.fromEntries(formData.entries());
+
+    // Check website field
+    const websiteInput = document.getElementById('website');
+    betData.website = websiteInput.value;
+
+    // Validate form data
+    if (!validateBetData(betData)) {
+      return; // Stop if validation fails
+    }
+
+    // Check if we're in edit mode
+    const editId = form.getAttribute('data-edit-id');
+
+    // Add user ID to the bet data
+    betData.user_id = user.id;
+
+    let success = false;
+
+    if (editId) {
+      success = await updateBetInSupabase(editId, betData);
+    } else {
+      // Format the data to match the database schema
+      const formattedData = {
+        user_id: user.id,
+        website: betData.website,
+        description: betData.description,
+        odds: parseFloat(betData.odds),
+        boosted_odds: betData['boosted-odds'] ? parseFloat(betData['boosted-odds']) : null,
+        amount: parseFloat(betData.amount),
+        date: new Date(betData.date).toISOString(),
+        outcome: betData.outcome,
+        note: betData.note || null // Add note field
+      };
+
+      // Insert the bet into Supabase
+      const { error } = await supabaseClient
+        .from('bets')
+        .insert(formattedData);
+
+      success = !error;
+
+      if (error) {
+        console.error('Error saving bet:', error);
+      }
+    }
+
+    if (success) {
+      showNotification('Bet saved successfully!', 'success');
+      setTimeout(() => {
+        handleNavigation('bet-history');
+      }, 1500);
+    } else {
+      showNotification('Error saving bet. Please try again.', 'error');
+    }
+  } catch (error) {
+    console.error('Error in saveBet:', error);
+    showNotification('Error saving bet. Please try again.', 'error');
+  }
 }
 
 export { loadNewBetForm, handleWebsiteSelect, saveBet };

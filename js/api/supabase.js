@@ -1,6 +1,6 @@
 // Initialize the Supabase client
-const supabaseUrl = config.supabaseUrl;
-const supabaseAnonKey = config.supabaseAnonKey;
+const { supabaseUrl } = config;
+const { supabaseAnonKey } = config;
 
 // Create a single supabase client for interacting with your database
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);

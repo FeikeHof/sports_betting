@@ -1,8 +1,8 @@
 // Function to load super boost strategy page
 function loadSuperBoostStrategy() {
-    const contentSection = document.getElementById('content');
-    
-    contentSection.innerHTML = `
+  const contentSection = document.getElementById('content');
+
+  contentSection.innerHTML = `
         <article class="strategy-content">
             <h2>Maximizing Profit with Super Boosts</h2>
 
