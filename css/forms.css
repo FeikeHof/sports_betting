@@ -40,20 +40,30 @@
 .form-group {
     margin-bottom: 24px;
     position: relative;
+    width: 100%; /* Ensure full width by default */
 }
 
 .form-row {
     display: flex;
     flex-wrap: wrap;
-    margin: 0 -12px 16px;
-    gap: 8px;
+    /* Fix the spacing issues */
+    margin-bottom: 16px;
+    gap: 20px; /* Increase gap for better spacing */
+    align-items: flex-start; /* Ensure top alignment */
+    justify-content: space-between; /* Distribute space evenly */
+    width: 100%; /* Ensure full width */
 }
 
 .form-row .form-group {
     flex: 1;
-    padding: 0 12px;
-    min-width: 200px;
+    padding: 0;
+    min-width: 0; /* Override min-width to prevent overflow */
     margin-bottom: 8px;
+    /* Fix the width calculations to ensure proper spacing */
+    width: calc(50% - 10px);
+    max-width: calc(50% - 10px);
+    /* Prevent content from overflowing */
+    box-sizing: border-box;
 }
 
 .bet-form label {
@@ -69,16 +79,20 @@
     color: #3498db;
 }
 
+/* Fix inconsistent styling between form elements */
 .bet-form input,
-.bet-form select {
+.bet-form select,
+.bet-form textarea {
     width: 100%;
-    padding: 12px 16px;
+    box-sizing: border-box;
+    max-width: 100%;
     border: 1px solid #e1e5e9;
     border-radius: 8px;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    padding: 12px 16px;
     background-color: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s ease;
 }
 
 .bet-form input:hover,
@@ -158,15 +172,15 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.website-input-group select {
-    flex: 1;
-    border-radius: 8px;
-}
-
+.website-input-group select,
 .website-input-group input {
     flex: 1;
+    box-sizing: border-box;
+    max-width: 100%;
     border-radius: 8px;
 }
 
@@ -176,6 +190,9 @@
     margin-top: 6px;
     font-style: italic;
     transition: color 0.3s ease;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Field validation styling */
@@ -235,6 +252,8 @@
   animation: formFieldFadeIn 0.5s ease forwards;
   animation-delay: 0.2s;
   opacity: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-section:last-child {
@@ -335,4 +354,31 @@
     opacity: 0;
     transform: scale(40, 40);
   }
+}
+
+/* Ensure date inputs match other inputs in appearance */
+.bet-form input[type="date"] {
+    width: 100%;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22%233498db%22%20d%3D%22M11%207h2v2h-2zm-3%200h2v2H8zM5%207h2v2H5zm6%205H5V9h6v3z%22%2F%3E%3Cpath%20fill%3D%22%233498db%22%20d%3D%22M14%202h-1V0h-2v2H5V0H3v2H2C.9%202%200%202.9%200%204v10c0%201.1.9%202%202%202h12c1.1%200%202-.9%202-2V4c0-1.1-.9-2-2-2zm0%2012H2V7h12v7z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+/* Additional fix for mobile screens to ensure no overlapping */
+@media (max-width: 575.98px) {
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-row .form-group {
+        width: 100%;
+        max-width: 100%;
+    }
 } 

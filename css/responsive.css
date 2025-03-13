@@ -16,6 +16,28 @@
     
     .form-row {
         flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-row .form-group {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    /* Ensure inputs don't overlap on smaller screens */
+    .bet-form input,
+    .bet-form select,
+    .bet-form textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Fix for website input group on smaller screens */
+    .website-input-group {
+        flex-direction: column;
+        gap: 10px;
     }
     
     .dashboard-container {
@@ -171,6 +193,16 @@
     .formula p {
         font-size: 0.95rem;
     }
+    
+    /* Further form adjustments for mobile */
+    .bet-form {
+        padding: 20px 15px;
+    }
+    
+    .form-section {
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
 }
 
 /* Extra small devices (portrait phones, less than 576px) */
@@ -206,11 +238,24 @@
     
     .form-row {
         margin: 0;
+        gap: 8px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
     }
     
     .form-actions {
         flex-direction: column;
+        align-items: stretch;
         gap: 10px;
+    }
+    
+    .bet-form input,
+    .bet-form select,
+    .bet-form textarea {
+        padding: 10px 12px;
+        font-size: 0.95rem;
     }
     
     .bet-table th:nth-child(4),
