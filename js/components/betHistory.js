@@ -211,13 +211,9 @@ function setupDateFilters() {
   startDateInput.max = todayFormatted;
   endDateInput.max = todayFormatted;
 
-  // Default end date to today
-  endDateInput.value = todayFormatted;
-  // Default start date to 30 days ago
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-  const thirtyDaysAgoFormatted = thirtyDaysAgo.toISOString().split('T')[0];
-  startDateInput.value = thirtyDaysAgoFormatted;
+  // No default dates - leave empty by default
+  startDateInput.value = '';
+  endDateInput.value = '';
 
   // Update filters when dates change
   startDateInput.addEventListener('change', () => {
@@ -248,9 +244,9 @@ function setupDateFilters() {
     applyFilters();
   });
 
-  // Initialize filter variables
-  startDateFilter = startDateInput.value ? new Date(startDateInput.value) : null;
-  endDateFilter = endDateInput.value ? new Date(endDateInput.value) : null;
+  // Initialize filter variables to null (no filter)
+  startDateFilter = null;
+  endDateFilter = null;
 
   // Add clear filters button event listener
   const clearFiltersBtn = document.getElementById('clear-date-filters');
