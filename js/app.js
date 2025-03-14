@@ -83,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutButton.addEventListener('click', signOut);
   }
 
+  // Load home page by default
+  handleNavigation('home');
+
   // Explicitly initialize Google Sign-In after our app is ready
   // Wait for Google API to be loaded
   window.googleAPILoaded = function () {

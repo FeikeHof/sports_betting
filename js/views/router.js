@@ -8,6 +8,14 @@ import { loadSuperBoostStrategy } from '../components/strategy.js';
 async function handleNavigation(targetId) {
   const contentSection = document.getElementById('content');
 
+  // Update active navigation link
+  updateActiveNavLink(targetId);
+  
+  // If no specific target or 'home' is provided, default to home
+  if (!targetId || targetId === '' || targetId === 'home') {
+    targetId = 'home';
+  }
+
   // Check authentication for protected routes
   if (['new-bet', 'bet-history', 'dashboard'].includes(targetId)) {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -25,6 +33,23 @@ async function handleNavigation(targetId) {
 
   // Handle navigation based on targetId
   switch (targetId) {
+    case 'home':
+      if (sessionStorage.getItem('userProfile')) {
+        loadUserData();
+      } else {
+        contentSection.innerHTML = `
+                    <h2>Welcome to Your Betting Headquarters</h2>
+                    <p>Please sign in to get started with tracking your bets.</p>
+                    <p>This application allows you to:</p>
+                    <ul>
+                        <li>Track all your betting activities</li>
+                        <li>Analyze your betting performance</li>
+                        <li>Follow specialized betting strategies</li>
+                        <li>View comprehensive statistics and charts</li>
+                    </ul>
+                `;
+      }
+      break;
     case 'new-bet':
       loadNewBetForm();
       break;
@@ -38,14 +63,28 @@ async function handleNavigation(targetId) {
       loadSuperBoostStrategy();
       break;
     default:
-      // Default welcome content
-      if (sessionStorage.getItem('userProfile')) {
-        loadUserData();
-      } else {
-        contentSection.innerHTML = `
-                    <p>Select an option from the sidebar to get started.</p>
-                `;
-      }
+      // If unknown route, redirect to home
+      handleNavigation('home');
+  }
+}
+
+// Function to update the active navigation link
+function updateActiveNavLink(targetId) {
+  // Default to home if no target specified
+  if (!targetId || targetId === '') {
+    targetId = 'home';
+  }
+  
+  // Remove active class from all navigation links
+  const navLinks = document.querySelectorAll('.sidebar nav ul li a');
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+  });
+  
+  // Add active class to current page link
+  const currentLink = document.querySelector(`.sidebar nav ul li a[href="#${targetId}"]`);
+  if (currentLink) {
+    currentLink.classList.add('active');
   }
 }
 
