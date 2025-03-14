@@ -94,7 +94,7 @@ async function loadBetHistory() {
 
     // Format profit/loss for display
     const formattedProfitLoss = bet.outcome === 'pending'
-      ? 'Pending'
+      ? '<span class="neutral-dash">-</span>'
       : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
 
     // Calculate expected value
@@ -354,20 +354,28 @@ function sortBets(sortBy, direction) {
         valueB = b.cells[6].textContent;
         break;
       case 'profit-loss':
-        const textA = a.cells[7].textContent;
-        const textB = b.cells[7].textContent;
+        const cellA = a.cells[7];
+        const cellB = b.cells[7];
 
-        if (textA === 'Pending' && textB === 'Pending') {
+        // Determine if cells contain a dash (pending bet)
+        const isAPending = cellA.querySelector('.neutral-dash') !== null;
+        const isBPending = cellB.querySelector('.neutral-dash') !== null;
+
+        if (isAPending && isBPending) {
           valueA = valueB = 0;
-        } else if (textA === 'Pending') {
+        } else if (isAPending) {
           valueA = -Infinity;
+          const textB = cellB.textContent;
           valueB = parseFloat(textB.replace(/[+€-]/g, ''))
                             * (textB.includes('-') ? -1 : 1);
-        } else if (textB === 'Pending') {
+        } else if (isBPending) {
+          const textA = cellA.textContent;
           valueA = parseFloat(textA.replace(/[+€-]/g, ''))
                             * (textA.includes('-') ? -1 : 1);
           valueB = -Infinity;
         } else {
+          const textA = cellA.textContent;
+          const textB = cellB.textContent;
           valueA = parseFloat(textA.replace(/[+€-]/g, ''))
                             * (textA.includes('-') ? -1 : 1);
           valueB = parseFloat(textB.replace(/[+€-]/g, ''))

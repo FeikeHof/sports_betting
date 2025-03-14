@@ -180,4 +180,10 @@
 
 .bet-table .outcome-select option[value="pending"] {
     color: #f39c12;
+}
+
+/* Neutral dash style */
+.neutral-dash {
+    color: #666; /* Neutral gray color */
+    font-style: normal; /* Override the italic style from pending class */
 } 
