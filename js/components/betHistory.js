@@ -120,7 +120,14 @@ async function loadBetHistory() {
                                     <td>${parseFloat(bet.odds).toFixed(2)}</td>
                                     <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
                                     <td>€${parseFloat(bet.amount).toFixed(2)}</td>
-                                    <td class="outcome-cell ${bet.outcome}">${bet.outcome === 'pending' ? 'Pending' : bet.outcome === 'win' ? 'Win' : 'Loss'}</td>
+                                    <td class="outcome-cell ${bet.outcome}">
+                                      <span class="outcome-display" onclick="window.app.showOutcomeSelect(${bet.id})">${bet.outcome === 'pending' ? 'Pending' : bet.outcome === 'win' ? 'Win' : 'Loss'}</span>
+                                      <select class="outcome-select" style="display: none;" onchange="window.app.updateBetOutcome(${bet.id}, this.value)" onblur="window.app.hideOutcomeSelect(${bet.id})">
+                                        <option value="pending" ${bet.outcome === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="win" ${bet.outcome === 'win' ? 'selected' : ''}>Win</option>
+                                        <option value="loss" ${bet.outcome === 'loss' ? 'selected' : ''}>Loss</option>
+                                      </select>
+                                    </td>
                                     <td class="profit-loss ${bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')}">
                                         ${formattedProfitLoss}
                                     </td>
@@ -449,11 +456,95 @@ function calculateExpectedValue(bet) {
   return expectedValue;
 }
 
+// Function to show the outcome select dropdown
+function showOutcomeSelect(betId) {
+  const row = document.querySelector(`tr[data-bet-id="${betId}"]`);
+  if (!row) return;
+
+  const outcomeCell = row.querySelector('.outcome-cell');
+  const outcomeDisplay = outcomeCell.querySelector('.outcome-display');
+  const outcomeSelect = outcomeCell.querySelector('.outcome-select');
+
+  // Hide display, show select
+  outcomeDisplay.style.display = 'none';
+  outcomeSelect.style.display = 'block';
+
+  // Focus and open the select
+  outcomeSelect.focus();
+}
+
+// Function to hide the outcome select dropdown and show the display
+function hideOutcomeSelect(betId) {
+  const row = document.querySelector(`tr[data-bet-id="${betId}"]`);
+  if (!row) return;
+
+  const outcomeCell = row.querySelector('.outcome-cell');
+  const outcomeDisplay = outcomeCell.querySelector('.outcome-display');
+  const outcomeSelect = outcomeCell.querySelector('.outcome-select');
+
+  // Show display, hide select
+  outcomeDisplay.style.display = 'inline-block';
+  outcomeSelect.style.display = 'none';
+}
+
+// Function to toggle the outcome edit mode - Keeping this for backwards compatibility
+function toggleOutcomeEdit(betId) {
+  showOutcomeSelect(betId);
+}
+
+// Function to update a bet's outcome directly
+async function updateBetOutcome(betId, newOutcome) {
+  try {
+    // Get current user and bets
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const userBets = await fetchBets(user.id);
+
+    // Find the bet to update
+    const bet = userBets.find((bet) => bet.id === betId);
+
+    if (!bet) {
+      showNotification('Bet not found.', 'error');
+      return;
+    }
+
+    // Create the update data (only updating the outcome)
+    const updateData = {
+      website: bet.website,
+      description: bet.description,
+      odds: bet.odds,
+      'boosted-odds': bet.boosted_odds,
+      amount: bet.amount,
+      date: bet.date,
+      outcome: newOutcome,
+      note: bet.note
+    };
+
+    // Update the bet in Supabase
+    const success = await updateBetInSupabase(betId, updateData);
+
+    if (success) {
+      showNotification('Bet outcome updated successfully!', 'success');
+
+      // Reload the bet history to reflect changes
+      loadBetHistory();
+    } else {
+      showNotification('Error updating bet outcome. Please try again.', 'error');
+    }
+  } catch (error) {
+    console.error('Error updating bet outcome:', error);
+    showNotification('Error updating bet outcome. Please try again.', 'error');
+  }
+}
+
 export {
   loadBetHistory,
   confirmDeleteBet,
   deleteBetById,
   editBet,
   applyFilters,
-  sortBets
+  sortBets,
+  toggleOutcomeEdit,
+  updateBetOutcome,
+  showOutcomeSelect,
+  hideOutcomeSelect
 };

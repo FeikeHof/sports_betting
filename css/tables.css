@@ -140,4 +140,44 @@
 
 .bet-table .ev-cell.negative {
     color: #e74c3c;
+}
+
+/* Inline outcome editing styles */
+.bet-table .outcome-cell {
+    position: relative;
+}
+
+.bet-table .outcome-display {
+    display: inline-block;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.bet-table .outcome-display:hover {
+    background-color: #f5f5f5;
+}
+
+.bet-table .outcome-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: white;
+    z-index: 100; /* Ensure dropdown appears above other elements */
+}
+
+.bet-table .outcome-select option[value="win"] {
+    color: #27ae60;
+}
+
+.bet-table .outcome-select option[value="loss"] {
+    color: #e74c3c;
+}
+
+.bet-table .outcome-select option[value="pending"] {
+    color: #f39c12;
 } 

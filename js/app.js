@@ -1,7 +1,8 @@
 import { handleCredentialResponse, signOut, checkLoginStatus } from './auth/auth.js';
 import { loadNewBetForm, handleWebsiteSelect, saveBet } from './components/newBet.js';
 import {
-  loadBetHistory, confirmDeleteBet, deleteBetById, editBet, applyFilters, sortBets
+  loadBetHistory, confirmDeleteBet, deleteBetById, editBet, applyFilters, sortBets,
+  toggleOutcomeEdit, updateBetOutcome, showOutcomeSelect, hideOutcomeSelect
 } from './components/betHistory.js';
 import { loadDashboard, loadUserData, applyDashboardFilters } from './components/dashboard.js';
 import { loadSuperBoostStrategy } from './components/strategy.js';
@@ -31,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
     editBet,
     applyFilters,
     sortBets,
+    toggleOutcomeEdit,
+    updateBetOutcome,
+    showOutcomeSelect,
+    hideOutcomeSelect,
     loadDashboard,
     loadUserData,
     applyDashboardFilters,
