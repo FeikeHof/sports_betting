@@ -26,7 +26,7 @@ async function loadBetHistory() {
 
     // Fetch bets
     const userBets = await fetchBets(userId);
-    
+
     // Store all bets globally for filtering
     window.allBets = [...userBets];
 
@@ -74,17 +74,17 @@ async function loadBetHistory() {
                 <table class="bet-table">
                     <thead>
                         <tr>
-                            <th class="sortable" data-sort="date">Date <span class="sort-icon">↓</span></th>
-                            <th class="sortable" data-sort="website">Website</th>
-                            <th class="sortable" data-sort="description">Description</th>
-                            <th class="sortable" data-sort="odds">Odds</th>
-                            <th>Boosted Odds</th>
-                            <th class="sortable" data-sort="amount">Amount (€)</th>
-                            <th class="sortable" data-sort="outcome">Outcome</th>
-                            <th class="sortable" data-sort="profit-loss">Profit/Loss (€)</th>
-                            <th class="sortable" data-sort="ev">Expected Value (€)</th>
-                            <th class="sortable" data-sort="note">Note</th>
-                            <th>Actions</th>
+                            <th class="sortable" data-sort="date" title="Date when the bet was placed">Date <span class="sort-icon">↓</span></th>
+                            <th title="Betting website or bookmaker">Website</th>
+                            <th title="Description of the bet">Description</th>
+                            <th class="sortable" data-sort="odds" title="Original odds for this bet">Odds <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="boosted_odds" title="Boosted odds, if applicable">Boosted <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="amount" title="Amount wagered">Amount <span class="sort-icon"></span></th>
+                            <th title="Current outcome status of the bet">Outcome</th>
+                            <th class="sortable" data-sort="profit-loss" title="Profit/Loss - your winnings or losses from this bet">P/L <span class="sort-icon"></span></th>
+                            <th class="sortable" data-sort="ev" title="Expected Value - the mathematical expectation of profit/loss in the long run">EV <span class="sort-icon"></span></th>
+                            <th title="Additional notes about the bet">Note</th>
+                            <th title="Actions you can perform on this bet">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="bet-table-body">
@@ -108,31 +108,22 @@ async function loadBetHistory() {
     }
     return total;
   }, 0) >= 0 ? 'positive' : 'negative'}">
-                                ${userBets.reduce((total, bet) => {
-    if (bet.outcome === 'pending') return total;
+                                €${(() => {
+    const totalProfitLoss = userBets.reduce((total, bet) => {
+      if (bet.outcome === 'pending') return total;
 
-    if (bet.outcome === 'win') {
-      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-      const stake = parseFloat(bet.amount);
-      const totalPayout = stake * odds;
-      return total + (totalPayout - stake);
-    } if (bet.outcome === 'loss') {
-      return total - parseFloat(bet.amount);
-    }
-    return total;
-  }, 0) >= 0 ? '+€' : '-€'}${Math.abs(userBets.reduce((total, bet) => {
-  if (bet.outcome === 'pending') return total;
-
-  if (bet.outcome === 'win') {
-    const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-    const stake = parseFloat(bet.amount);
-    const totalPayout = stake * odds;
-    return total + (totalPayout - stake);
-  } if (bet.outcome === 'loss') {
-    return total - parseFloat(bet.amount);
-  }
-  return total;
-}, 0)).toFixed(2)}
+      if (bet.outcome === 'win') {
+        const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+        const stake = parseFloat(bet.amount);
+        const totalPayout = stake * odds;
+        return total + (totalPayout - stake);
+      } if (bet.outcome === 'loss') {
+        return total - parseFloat(bet.amount);
+      }
+      return total;
+    }, 0);
+    return (totalProfitLoss >= 0 ? '' : '-') + Math.abs(totalProfitLoss).toFixed(2);
+  })()}
                             </td>
                             <td></td>
                             <td colspan="2"></td>
@@ -149,9 +140,9 @@ async function loadBetHistory() {
         `;
 
     // Store all bets for filtering
-    filteredBets = [...userBets]; 
+    filteredBets = [...userBets];
     currentPage = 1;
-    
+
     // Render the initial page
     renderCurrentPage();
 
@@ -182,7 +173,16 @@ async function loadBetHistory() {
     document.querySelectorAll('.sortable').forEach((header) => {
       header.addEventListener('click', function () {
         const sortBy = this.getAttribute('data-sort');
-        const currentDirection = this.querySelector('.sort-icon').textContent === '↓' ? 'desc' : 'asc';
+
+        // Check if this header has a sort-icon first
+        let sortIcon = this.querySelector('.sort-icon');
+        if (!sortIcon) {
+          sortIcon = document.createElement('span');
+          sortIcon.className = 'sort-icon';
+          this.appendChild(sortIcon);
+        }
+
+        const currentDirection = sortIcon.textContent === '↓' ? 'desc' : 'asc';
         const newDirection = currentDirection === 'desc' ? 'asc' : 'desc';
 
         // Reset all sort icons
@@ -191,13 +191,13 @@ async function loadBetHistory() {
         });
 
         // Set the new sort icon
-        this.querySelector('.sort-icon').textContent = newDirection === 'desc' ? '↓' : '↑';
+        sortIcon.textContent = newDirection === 'desc' ? '↓' : '↑';
 
         // Sort the bets
         sortBets(sortBy, newDirection);
       });
     });
-    
+
     // Add pagination event listeners
     document.getElementById('prev-page').addEventListener('click', () => {
       if (currentPage > 1) {
@@ -205,7 +205,7 @@ async function loadBetHistory() {
         renderCurrentPage();
       }
     });
-    
+
     document.getElementById('next-page').addEventListener('click', () => {
       const totalPages = Math.ceil(filteredBets.length / pageSize);
       if (currentPage < totalPages) {
@@ -213,7 +213,7 @@ async function loadBetHistory() {
         renderCurrentPage();
       }
     });
-    
+
     // Setup tooltips after rendering the table
     setupTooltips();
   } catch (error) {
@@ -230,17 +230,17 @@ async function loadBetHistory() {
 function renderCurrentPage() {
   const tableBody = document.getElementById('bet-table-body');
   if (!tableBody) return;
-  
+
   // Calculate page boundaries
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, filteredBets.length);
-  
+
   // Clear existing rows
   tableBody.innerHTML = '';
-  
+
   // Render only the bets for the current page
   const currentPageBets = filteredBets.slice(startIndex, endIndex);
-  
+
   // Generate HTML for each bet
   const betsHTML = currentPageBets.map((bet) => {
     // Calculate profit/loss
@@ -257,13 +257,11 @@ function renderCurrentPage() {
     // Format profit/loss for display
     const formattedProfitLoss = bet.outcome === 'pending'
       ? '<span class="neutral-dash">-</span>'
-      : (profitLoss >= 0 ? '+€' : '-€') + Math.abs(profitLoss).toFixed(2);
+      : `€${profitLoss >= 0 ? '' : '-'}${Math.abs(profitLoss).toFixed(2)}`;
 
     // Calculate expected value
     const expectedValue = calculateExpectedValue(bet);
-    const formattedEV = expectedValue >= 0
-      ? `+€${expectedValue.toFixed(2)}`
-      : `-€${Math.abs(expectedValue).toFixed(2)}`;
+    const formattedEV = `€${expectedValue >= 0 ? '' : '-'}${Math.abs(expectedValue).toFixed(2)}`;
 
     // Format date
     const betDate = new Date(bet.date);
@@ -298,25 +296,25 @@ function renderCurrentPage() {
           </td>
           <td class="note-cell" data-note="${bet.note ? bet.note.replace(/"/g, '&quot;') : '-'}">${bet.note || '-'}</td>
           <td class="actions-cell">
-              <button class="btn-edit" onclick="window.app.editBet(${bet.id})" title="Edit bet">Edit</button>
-              <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" title="Delete bet">Delete</button>
+              <button class="btn-edit" onclick="window.app.editBet(${bet.id})" title="Edit bet" aria-label="Edit bet"></button>
+              <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" title="Delete bet" aria-label="Delete bet"></button>
           </td>
       </tr>
     `;
   }).join('');
-  
+
   // Add the rows to the table
   tableBody.innerHTML = betsHTML;
-  
+
   // Update pagination info
   const totalPages = Math.max(1, Math.ceil(filteredBets.length / pageSize));
   document.getElementById('current-page').textContent = currentPage;
   document.getElementById('total-pages').textContent = totalPages;
-  
+
   // Enable/disable pagination buttons
   document.getElementById('prev-page').disabled = currentPage === 1;
   document.getElementById('next-page').disabled = currentPage === totalPages;
-  
+
   // Re-setup tooltips for the new rows
   setupTooltips();
 }
@@ -328,7 +326,7 @@ function applyFilters() {
 
   // Get all bets from the original dataset
   const userBets = window.allBets || [];
-  
+
   // Filter the bets
   filteredBets = userBets.filter((bet) => {
     // Apply outcome filter
@@ -337,9 +335,9 @@ function applyFilters() {
     }
 
     // Apply search filter
-    if (searchTerm && !bet.website.toLowerCase().includes(searchTerm) && 
-        !bet.description.toLowerCase().includes(searchTerm) && 
-        !(bet.note && bet.note.toLowerCase().includes(searchTerm))) {
+    if (searchTerm && !bet.website.toLowerCase().includes(searchTerm)
+        && !bet.description.toLowerCase().includes(searchTerm)
+        && !(bet.note && bet.note.toLowerCase().includes(searchTerm))) {
       return false;
     }
 
@@ -349,7 +347,7 @@ function applyFilters() {
   // Calculate statistics based on filtered bets
   const totalBets = filteredBets.length;
   const totalAmount = filteredBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
-  
+
   const totalProfitLoss = filteredBets.reduce((total, bet) => {
     if (bet.outcome === 'pending') return total;
 
@@ -372,13 +370,13 @@ function applyFilters() {
             <td>€${totalAmount.toFixed(2)}</td>
             <td></td>
             <td class="profit-loss ${totalProfitLoss >= 0 ? 'positive' : 'negative'}">
-                ${totalProfitLoss >= 0 ? '+€' : '-€'}${Math.abs(totalProfitLoss).toFixed(2)}
+                €${totalProfitLoss >= 0 ? '' : '-'}${Math.abs(totalProfitLoss).toFixed(2)}
             </td>
             <td></td>
             <td colspan="2"></td>
         `;
   }
-  
+
   // Render the current page (will show first page since currentPage is reset)
   renderCurrentPage();
 }
@@ -387,32 +385,25 @@ function applyFilters() {
 function sortBets(sortBy, direction) {
   // Sort the filteredBets array
   filteredBets.sort((a, b) => {
-    let valueA, valueB;
+    let valueA; let
+      valueB;
 
     switch (sortBy) {
       case 'date':
         valueA = new Date(a.date);
         valueB = new Date(b.date);
         break;
-      case 'website':
-        valueA = a.website.toLowerCase();
-        valueB = b.website.toLowerCase();
-        break;
-      case 'description':
-        valueA = a.description.toLowerCase();
-        valueB = b.description.toLowerCase();
-        break;
       case 'odds':
         valueA = parseFloat(a.odds);
         valueB = parseFloat(b.odds);
         break;
+      case 'boosted_odds':
+        valueA = a.boosted_odds ? parseFloat(a.boosted_odds) : parseFloat(a.odds);
+        valueB = b.boosted_odds ? parseFloat(b.boosted_odds) : parseFloat(b.odds);
+        break;
       case 'amount':
         valueA = parseFloat(a.amount);
         valueB = parseFloat(b.amount);
-        break;
-      case 'outcome':
-        valueA = a.outcome;
-        valueB = b.outcome;
         break;
       case 'profit-loss':
         // Calculate profit/loss for bet A
@@ -424,7 +415,7 @@ function sortBets(sortBy, direction) {
         } else { // loss
           valueA = -parseFloat(a.amount);
         }
-        
+
         // Calculate profit/loss for bet B
         if (b.outcome === 'pending') {
           valueB = -Infinity;
@@ -438,10 +429,6 @@ function sortBets(sortBy, direction) {
       case 'ev':
         valueA = calculateExpectedValue(a);
         valueB = calculateExpectedValue(b);
-        break;
-      case 'note':
-        valueA = (a.note || '').toLowerCase();
-        valueB = (b.note || '').toLowerCase();
         break;
       default:
         valueA = valueB = 0;
@@ -460,89 +447,89 @@ function sortBets(sortBy, direction) {
 // Function to setup tooltips for cells with truncated text
 function setupTooltips() {
   // Remove any existing tooltips
-  document.querySelectorAll('.cell-tooltip').forEach(tooltip => {
+  document.querySelectorAll('.cell-tooltip').forEach((tooltip) => {
     tooltip.remove();
   });
 
   // Setup tooltips for description cells
-  document.querySelectorAll('.description-cell').forEach(cell => {
+  document.querySelectorAll('.description-cell').forEach((cell) => {
     const description = cell.getAttribute('data-description');
     if (!description) return;
-    
+
     // Create tooltip element
     const tooltip = document.createElement('div');
     tooltip.className = 'cell-tooltip';
     tooltip.textContent = description;
     tooltip.style.display = 'none';
     document.body.appendChild(tooltip);
-    
+
     // Show tooltip on mouseenter
-    cell.addEventListener('mouseenter', function(e) {
+    cell.addEventListener('mouseenter', (e) => {
       const rect = cell.getBoundingClientRect();
-      
+
       // Set width before positioning
       tooltip.style.maxWidth = '300px';
-      
+
       // Position tooltip
-      tooltip.style.left = (rect.left + window.scrollX) + 'px';
-      
+      tooltip.style.left = `${rect.left + window.scrollX}px`;
+
       // Position above or below depending on space
       const spaceBelow = window.innerHeight - rect.bottom;
       if (spaceBelow < 200) {
-        tooltip.style.top = (rect.top + window.scrollY - 5) + 'px';
+        tooltip.style.top = `${rect.top + window.scrollY - 5}px`;
         tooltip.style.transform = 'translateY(-100%)';
       } else {
-        tooltip.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
         tooltip.style.transform = 'translateY(0)';
       }
-      
+
       tooltip.style.display = 'block';
     });
-    
+
     // Hide tooltip on mouseleave
-    cell.addEventListener('mouseleave', function() {
+    cell.addEventListener('mouseleave', () => {
       tooltip.style.display = 'none';
     });
   });
-  
+
   // Setup tooltips for note cells
-  document.querySelectorAll('.note-cell').forEach(cell => {
+  document.querySelectorAll('.note-cell').forEach((cell) => {
     const note = cell.getAttribute('data-note');
     if (!note || note === '-') return;
-    
+
     // Create tooltip element
     const tooltip = document.createElement('div');
     tooltip.className = 'cell-tooltip';
     tooltip.textContent = note;
     tooltip.style.display = 'none';
     document.body.appendChild(tooltip);
-    
+
     // Show tooltip on mouseenter
-    cell.addEventListener('mouseenter', function(e) {
+    cell.addEventListener('mouseenter', (e) => {
       const rect = cell.getBoundingClientRect();
-      
+
       // Set width before positioning
       tooltip.style.maxWidth = '300px';
-      
+
       // Position tooltip - align right edge with cell
       tooltip.style.left = 'auto';
-      tooltip.style.right = (window.innerWidth - rect.right - window.scrollX) + 'px';
-      
+      tooltip.style.right = `${window.innerWidth - rect.right - window.scrollX}px`;
+
       // Position above or below depending on space
       const spaceBelow = window.innerHeight - rect.bottom;
       if (spaceBelow < 200) {
-        tooltip.style.top = (rect.top + window.scrollY - 5) + 'px';
+        tooltip.style.top = `${rect.top + window.scrollY - 5}px`;
         tooltip.style.transform = 'translateY(-100%)';
       } else {
-        tooltip.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        tooltip.style.top = `${rect.bottom + window.scrollY + 5}px`;
         tooltip.style.transform = 'translateY(0)';
       }
-      
+
       tooltip.style.display = 'block';
     });
-    
+
     // Hide tooltip on mouseleave
-    cell.addEventListener('mouseleave', function() {
+    cell.addEventListener('mouseleave', () => {
       tooltip.style.display = 'none';
     });
   });

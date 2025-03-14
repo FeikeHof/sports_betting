@@ -18,7 +18,7 @@
 
 .bet-table th,
 .bet-table td {
-    padding: 12px 15px;
+    padding: 8px 10px;
     border-bottom: 1px solid #f1f1f1;
     text-align: left;
 }
@@ -38,7 +38,7 @@
 
 /* Description cell with tooltip behavior */
 .bet-table .description-cell {
-    max-width: 200px;
+    max-width: 300px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -48,7 +48,7 @@
 
 /* Note cell with tooltip behavior */
 .bet-table .note-cell {
-    max-width: 150px;
+    max-width: 180px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -114,9 +114,11 @@
     font-style: italic;
 }
 
+/* Actions cell styling */
 .bet-table .actions-cell {
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
+    width: 90px;
 }
 
 .bet-table tfoot {
@@ -133,17 +135,53 @@
 .sortable {
     cursor: pointer;
     position: relative;
-    padding-right: 20px;
+    padding-right: 26px;
 }
 
 .sortable:hover {
     background-color: #eaecef;
 }
 
+/* Special handling for right-aligned headers */
+.bet-table th.sortable[data-sort="amount"],
+.bet-table th.sortable[data-sort="profit-loss"],
+.bet-table th.sortable[data-sort="ev"] {
+    padding-left: 12px; /* Keep some padding but reduce it */
+}
+
+/* Sort icon positioning */
 .sort-icon {
     position: absolute;
     right: 8px;
-    line-height: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 1;
+    font-size: 14px;
+    opacity: 0.7;
+    pointer-events: none;
+    font-family: sans-serif;
+    width: 14px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Show a light placeholder for unsorted columns on hover */
+.sortable:hover .sort-icon:empty::after {
+    content: '↕';
+    opacity: 0.3;
+}
+
+/* Increase contrast for active sort icons */
+.sort-icon:not(:empty) {
+    opacity: 1;
+    color: #0066cc;
+    font-weight: bold;
+}
+
+/* Consistent tooltip styling for th elements */
+.bet-table th[title] {
+    cursor: help;
+    border-bottom: 1px dotted #999;
 }
 
 /* EV styling */
@@ -184,7 +222,7 @@
     font-weight: 500;
     cursor: pointer;
     background-color: white;
-    z-index: 100; /* Ensure dropdown appears above other elements */
+    z-index: 100;
 }
 
 .bet-table .outcome-select option[value="win"] {
@@ -201,8 +239,8 @@
 
 /* Neutral dash style */
 .neutral-dash {
-    color: #666; /* Neutral gray color */
-    font-style: normal; /* Override the italic style from pending class */
+    color: #666;
+    font-style: normal;
 }
 
 /* Make tooltips appear above cells when near the bottom of the screen */
@@ -247,4 +285,82 @@
 #page-info {
     font-size: 14px;
     color: #555;
-} 
+}
+
+/* Optimizing column widths */
+.bet-table th:nth-child(1), /* Date */
+.bet-table td:nth-child(1) {
+    width: 80px;
+}
+
+.bet-table th:nth-child(4), /* Odds */
+.bet-table td:nth-child(4),
+.bet-table th:nth-child(5), /* Boosted */
+.bet-table td:nth-child(5) {
+    width: 60px;
+}
+
+.bet-table th:nth-child(6), /* Amount */
+.bet-table td:nth-child(6),
+.bet-table th:nth-child(8), /* P/L */
+.bet-table td:nth-child(8),
+.bet-table th:nth-child(9), /* EV */
+.bet-table td:nth-child(9) {
+    width: 65px;
+}
+
+.bet-table th:nth-child(7), /* Outcome */
+.bet-table td:nth-child(7) {
+    width: 70px;
+}
+
+/* Currency formatting for cells only (not headers) */
+.bet-table td:nth-child(6), /* Amount */
+.bet-table td:nth-child(8), /* P/L */
+.bet-table td:nth-child(9) { /* EV */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    text-align: right;
+    font-family: Inter, sans-serif;
+    min-width: 70px;
+}
+
+/* Increase specificity for profit-loss cell to override any other styles */
+.bet-table .profit-loss {
+    text-align: right;
+    font-family: Inter, sans-serif;
+    font-feature-settings: "tnum";
+}
+
+/* Increase specificity for ev-cell to override any other styles */
+.bet-table .ev-cell {
+    text-align: right;
+    font-family: Inter, sans-serif;
+    font-feature-settings: "tnum";
+}
+
+/* Ensure all headers are left-aligned regardless of column data alignment */
+.bet-table th {
+    text-align: left !important;
+    font-family: Inter, sans-serif;
+}
+
+/* Make all sortable headers consistent */
+.bet-table th.sortable {
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.bet-table th.sortable:hover {
+    background-color: #eaecef;
+}
+
+/* Remove duplicated rule */
+.bet-table th.sortable[data-sort="amount"],
+.bet-table th.sortable[data-sort="profit-loss"],
+.bet-table th.sortable[data-sort="ev"] {
+    padding-left: 12px; /* Keep some padding but reduce it */
+}
+
+/* Remove center text content span rule */
+/* Remove right-align monetary value headers rule */ 
