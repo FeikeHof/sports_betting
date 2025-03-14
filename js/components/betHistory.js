@@ -7,6 +7,11 @@ import { loadNewBetForm } from './newBet.js';
 let currentPage = 1;
 const pageSize = 15; // Number of bets per page
 let filteredBets = []; // To store filtered bets for pagination
+// Add date filter variables
+let startDateFilter = null;
+let endDateFilter = null;
+
+// Define all functions before they're used to avoid "used before defined" errors
 
 // Function to calculate the expected value using the formula: 0.95/odds*boosted_odds * amount - amount
 function calculateExpectedValue(bet) {
@@ -111,122 +116,6 @@ function setupTooltips() {
   });
 }
 
-// Function to render the current page of bets
-function renderCurrentPage() {
-  const tableBody = document.getElementById('bet-table-body');
-  if (!tableBody) return;
-
-  // Calculate page boundaries
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, filteredBets.length);
-
-  // Clear existing rows
-  tableBody.innerHTML = '';
-
-  // Render only the bets for the current page
-  const currentPageBets = filteredBets.slice(startIndex, endIndex);
-
-  // Generate HTML for each bet
-  const betsHTML = currentPageBets.map((bet) => {
-    // Calculate profit/loss
-    let profitLoss = 0;
-    if (bet.outcome === 'win') {
-      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
-      const stake = parseFloat(bet.amount);
-      const totalPayout = stake * odds;
-      profitLoss = totalPayout - stake; // Subtract stake to get actual profit
-    } else if (bet.outcome === 'loss') {
-      profitLoss = -parseFloat(bet.amount);
-    }
-
-    // Format profit/loss for display
-    const formattedProfitLoss = bet.outcome === 'pending'
-      ? '<span class="neutral-dash">-</span>'
-      : `€${profitLoss >= 0 ? '' : '-'}${Math.abs(profitLoss).toFixed(2)}`;
-
-    // Calculate expected value
-    const expectedValue = calculateExpectedValue(bet);
-    const formattedEV = `€${expectedValue >= 0 ? '' : '-'}${Math.abs(expectedValue).toFixed(2)}`;
-
-    // Format date
-    const betDate = new Date(bet.date);
-    const formattedDate = betDate.toLocaleDateString();
-
-    // Determine row class based on outcome - Replace nested ternary with if/else
-    let rowClass = 'pending-row';
-    if (bet.outcome === 'win') {
-      rowClass = 'win-row';
-    } else if (bet.outcome === 'loss') {
-      rowClass = 'loss-row';
-    }
-
-    // Extract long HTML into variables to avoid line length issues
-    const outcomeCellContent = `
-      <span class="outcome-display" onclick="window.app.showOutcomeSelect(${bet.id})">
-        ${bet.outcome === 'pending' ? 'Pending' : bet.outcome === 'win' ? 'Win' : 'Loss'}
-      </span>
-      <select class="outcome-select" style="display: none;" 
-        onchange="window.app.updateBetOutcome(${bet.id}, this.value)" 
-        onblur="window.app.hideOutcomeSelect(${bet.id})">
-        <option value="pending" ${bet.outcome === 'pending' ? 'selected' : ''}>Pending</option>
-        <option value="win" ${bet.outcome === 'win' ? 'selected' : ''}>Win</option>
-        <option value="loss" ${bet.outcome === 'loss' ? 'selected' : ''}>Loss</option>
-      </select>
-    `;
-
-    const actionCellContent = `
-      <button class="btn-edit" onclick="window.app.editBet(${bet.id})" 
-        title="Edit bet" aria-label="Edit bet"></button>
-      <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" 
-        title="Delete bet" aria-label="Delete bet"></button>
-    `;
-
-    // Build the HTML with fixed line lengths
-    return `
-      <tr class="${rowClass}" data-bet-id="${bet.id}">
-          <td>${formattedDate}</td>
-          <td>${bet.website}</td>
-          <td class="description-cell" 
-              data-description="${bet.description.replace(/"/g, '&quot;')}">
-              ${bet.description}
-          </td>
-          <td>${parseFloat(bet.odds).toFixed(2)}</td>
-          <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
-          <td>€${parseFloat(bet.amount).toFixed(2)}</td>
-          <td class="outcome-cell ${bet.outcome}">${outcomeCellContent}</td>
-          <td class="profit-loss ${
-            bet.outcome === 'pending' ? 'pending' : (profitLoss >= 0 ? 'positive' : 'negative')
-          }">
-              ${formattedProfitLoss}
-          </td>
-          <td class="ev-cell ${expectedValue >= 0 ? 'positive' : 'negative'}">
-              ${formattedEV}
-          </td>
-          <td class="note-cell" 
-              data-note="${bet.note ? bet.note.replace(/"/g, '&quot;') : '-'}">
-              ${bet.note || '-'}
-          </td>
-          <td class="actions-cell">${actionCellContent}</td>
-      </tr>
-    `;
-  }).join('');
-
-  // Add the rows to the table
-  tableBody.innerHTML = betsHTML;
-
-  // Update pagination info
-  const totalPages = Math.max(1, Math.ceil(filteredBets.length / pageSize));
-  document.getElementById('current-page').textContent = currentPage;
-  document.getElementById('total-pages').textContent = totalPages;
-
-  // Enable/disable pagination buttons
-  document.getElementById('prev-page').disabled = currentPage === 1;
-  document.getElementById('next-page').disabled = currentPage === totalPages;
-
-  // Re-setup tooltips for the new rows
-  setupTooltips();
-}
-
 // Function to apply filters to the bet history
 function applyFilters() {
   const outcomeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
@@ -247,6 +136,26 @@ function applyFilters() {
         && !bet.description.toLowerCase().includes(searchTerm)
         && !(bet.note && bet.note.toLowerCase().includes(searchTerm))) {
       return false;
+    }
+
+    // Apply date filter if set
+    if (startDateFilter || endDateFilter) {
+      const betDate = new Date(bet.date);
+
+      // Check if date is within range
+      if (startDateFilter && betDate < startDateFilter) {
+        return false;
+      }
+
+      if (endDateFilter) {
+        // Set time to end of day for the end date
+        const endOfDay = new Date(endDateFilter);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        if (betDate > endOfDay) {
+          return false;
+        }
+      }
     }
 
     return true;
@@ -285,15 +194,222 @@ function applyFilters() {
         `;
   }
 
-  // Render the current page (will show first page since currentPage is reset)
+  // Render the current page
   renderCurrentPage();
+}
+
+// Setup date inputs with today's date as max
+function setupDateFilters() {
+  const startDateInput = document.getElementById('start-date-filter');
+  const endDateInput = document.getElementById('end-date-filter');
+
+  if (!startDateInput || !endDateInput) return;
+
+  // Set max date to today
+  const today = new Date();
+  const todayFormatted = today.toISOString().split('T')[0];
+  startDateInput.max = todayFormatted;
+  endDateInput.max = todayFormatted;
+
+  // Default end date to today
+  endDateInput.value = todayFormatted;
+  // Default start date to 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  const thirtyDaysAgoFormatted = thirtyDaysAgo.toISOString().split('T')[0];
+  startDateInput.value = thirtyDaysAgoFormatted;
+
+  // Update filters when dates change
+  startDateInput.addEventListener('change', () => {
+    startDateFilter = startDateInput.value ? new Date(startDateInput.value) : null;
+    // Ensure end date is not before start date
+    if (startDateFilter && endDateInput.value) {
+      const endDate = new Date(endDateInput.value);
+      if (endDate < startDateFilter) {
+        endDateInput.value = startDateInput.value;
+        endDateFilter = new Date(startDateInput.value);
+      }
+    }
+    currentPage = 1;
+    applyFilters();
+  });
+
+  endDateInput.addEventListener('change', () => {
+    endDateFilter = endDateInput.value ? new Date(endDateInput.value) : null;
+    // Ensure start date is not after end date
+    if (endDateFilter && startDateInput.value) {
+      const startDate = new Date(startDateInput.value);
+      if (startDate > endDateFilter) {
+        startDateInput.value = endDateInput.value;
+        startDateFilter = new Date(endDateInput.value);
+      }
+    }
+    currentPage = 1;
+    applyFilters();
+  });
+
+  // Initialize filter variables
+  startDateFilter = startDateInput.value ? new Date(startDateInput.value) : null;
+  endDateFilter = endDateInput.value ? new Date(endDateInput.value) : null;
+
+  // Add clear filters button event listener
+  const clearFiltersBtn = document.getElementById('clear-date-filters');
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      startDateInput.value = '';
+      endDateInput.value = '';
+      startDateFilter = null;
+      endDateFilter = null;
+      currentPage = 1;
+      applyFilters();
+    });
+  }
+}
+
+// Function to render the current page of bets
+function renderCurrentPage() {
+  const tableBody = document.getElementById('bet-table-body');
+  if (!tableBody) return;
+
+  // Calculate page boundaries
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredBets.length);
+
+  // Clear existing rows
+  tableBody.innerHTML = '';
+
+  // Render only the bets for the current page
+  const currentPageBets = filteredBets.slice(startIndex, endIndex);
+
+  // Generate HTML for each bet
+  const betsHTML = currentPageBets.map((bet) => {
+    // Calculate profit/loss
+    let profitLoss = 0;
+    if (bet.outcome === 'win') {
+      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+      const stake = parseFloat(bet.amount);
+      const totalPayout = stake * odds;
+      profitLoss = totalPayout - stake; // Subtract stake to get actual profit
+    } else if (bet.outcome === 'loss') {
+      profitLoss = -parseFloat(bet.amount);
+    }
+
+    // Format profit/loss for display
+    let formattedProfitLoss;
+    if (bet.outcome === 'pending') {
+      formattedProfitLoss = '<span class="neutral-dash">-</span>';
+    } else {
+      formattedProfitLoss = `€${profitLoss >= 0 ? '' : '-'}${Math.abs(profitLoss).toFixed(2)}`;
+    }
+
+    // Calculate expected value
+    const expectedValue = calculateExpectedValue(bet);
+    const formattedEV = `€${expectedValue >= 0 ? '' : '-'}${Math.abs(expectedValue).toFixed(2)}`;
+
+    // Format date
+    const betDate = new Date(bet.date);
+    const formattedDate = betDate.toLocaleDateString();
+
+    // Determine row class based on outcome - Replace nested ternary with if/else
+    let rowClass = 'pending-row';
+    if (bet.outcome === 'win') {
+      rowClass = 'win-row';
+    } else if (bet.outcome === 'loss') {
+      rowClass = 'loss-row';
+    }
+
+    // Determine outcome text
+    let outcomeText;
+    if (bet.outcome === 'pending') {
+      outcomeText = 'Pending';
+    } else if (bet.outcome === 'win') {
+      outcomeText = 'Win';
+    } else {
+      outcomeText = 'Loss';
+    }
+
+    // Extract long HTML into variables to avoid line length issues
+    const outcomeCellContent = `
+      <span class="outcome-display" onclick="window.app.showOutcomeSelect(${bet.id})">
+        ${outcomeText}
+      </span>
+      <select class="outcome-select" style="display: none;" 
+        onchange="window.app.updateBetOutcome(${bet.id}, this.value)" 
+        onblur="window.app.hideOutcomeSelect(${bet.id})">
+        <option value="pending" ${bet.outcome === 'pending' ? 'selected' : ''}>Pending</option>
+        <option value="win" ${bet.outcome === 'win' ? 'selected' : ''}>Win</option>
+        <option value="loss" ${bet.outcome === 'loss' ? 'selected' : ''}>Loss</option>
+      </select>
+    `;
+
+    const actionCellContent = `
+      <button class="btn-edit" onclick="window.app.editBet(${bet.id})" 
+        title="Edit bet" aria-label="Edit bet"></button>
+      <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" 
+        title="Delete bet" aria-label="Delete bet"></button>
+    `;
+
+    // Determine profit/loss cell class
+    let profitLossClass;
+    if (bet.outcome === 'pending') {
+      profitLossClass = 'pending';
+    } else if (profitLoss >= 0) {
+      profitLossClass = 'positive';
+    } else {
+      profitLossClass = 'negative';
+    }
+
+    // Build the HTML with fixed line lengths
+    return `
+      <tr class="${rowClass}" data-bet-id="${bet.id}">
+          <td>${formattedDate}</td>
+          <td>${bet.website}</td>
+          <td class="description-cell" 
+              data-description="${bet.description.replace(/"/g, '&quot;')}">
+              ${bet.description}
+          </td>
+          <td>${parseFloat(bet.odds).toFixed(2)}</td>
+          <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
+          <td>€${parseFloat(bet.amount).toFixed(2)}</td>
+          <td class="outcome-cell ${bet.outcome}">${outcomeCellContent}</td>
+          <td class="profit-loss ${profitLossClass}">
+              ${formattedProfitLoss}
+          </td>
+          <td class="ev-cell ${expectedValue >= 0 ? 'positive' : 'negative'}">
+              ${formattedEV}
+          </td>
+          <td class="note-cell" 
+              data-note="${bet.note ? bet.note.replace(/"/g, '&quot;') : '-'}">
+              ${bet.note || '-'}
+          </td>
+          <td class="actions-cell">${actionCellContent}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Add the rows to the table
+  tableBody.innerHTML = betsHTML;
+
+  // Update pagination info
+  const totalPages = Math.max(1, Math.ceil(filteredBets.length / pageSize));
+  document.getElementById('current-page').textContent = currentPage;
+  document.getElementById('total-pages').textContent = totalPages;
+
+  // Enable/disable pagination buttons
+  document.getElementById('prev-page').disabled = currentPage === 1;
+  document.getElementById('next-page').disabled = currentPage === totalPages;
+
+  // Re-setup tooltips for the new rows
+  setupTooltips();
 }
 
 // Function to sort bets - Updated for pagination
 function sortBets(sortBy, direction) {
   // Sort the filteredBets array
   filteredBets.sort((a, b) => {
-    let valueA, valueB;
+    // Split let declarations into multiple statements
+    let valueA;
+    let valueB;
 
     switch (sortBy) {
       case 'date':
@@ -338,8 +454,7 @@ function sortBets(sortBy, direction) {
         valueB = calculateExpectedValue(b);
         break;
       default:
-        // Fix chained assignment
-        valueA = 0; 
+        valueA = 0;
         valueB = 0;
     }
 
@@ -353,15 +468,7 @@ function sortBets(sortBy, direction) {
   renderCurrentPage();
 }
 
-// Function to confirm delete bet
-function confirmDeleteBet(id) {
-  // Using confirm is flagged but necessary for this use case
-  // eslint-disable-next-line no-alert
-  if (window.confirm('Are you sure you want to delete this bet?')) {
-    deleteBetById(id);
-  }
-}
-
+// Function for deleting bets
 async function deleteBetById(id) {
   try {
     const success = await deleteBet(id);
@@ -377,6 +484,15 @@ async function deleteBetById(id) {
   } catch (error) {
     console.error('Error deleting bet:', error);
     showNotification('Error deleting bet. Please try again.', 'error');
+  }
+}
+
+// Function to confirm delete bet
+function confirmDeleteBet(id) {
+  // Using confirm is flagged but necessary for this use case
+  // eslint-disable-next-line no-alert
+  if (window.confirm('Are you sure you want to delete this bet?')) {
+    deleteBetById(id);
   }
 }
 
@@ -531,7 +647,20 @@ async function loadBetHistory() {
     const searchInput = `
             <div class="search-container">
                 <input type="text" id="bet-search" placeholder="Search bets...">
-                <button id="search-button">Search</button>
+                <button id="search-button" class="btn-secondary">Search</button>
+            </div>
+        `;
+
+    // Create date filter component
+    const dateFilter = `
+            <div class="date-filter-container">
+                <div class="date-filter-label">Date Range:</div>
+                <div class="date-inputs">
+                    <input type="date" id="start-date-filter" placeholder="Start Date">
+                    <span>to</span>
+                    <input type="date" id="end-date-filter" placeholder="End Date">
+                    <button id="clear-date-filters" class="btn-secondary">Clear</button>
+                </div>
             </div>
         `;
 
@@ -579,7 +708,7 @@ async function loadBetHistory() {
         }
         return total;
       }, 0);
-      
+
       return (totalProfitLoss >= 0 ? '' : '-') + Math.abs(totalProfitLoss).toFixed(2);
     };
 
@@ -622,8 +751,9 @@ async function loadBetHistory() {
         <div class="controls-row">
           ${filterButtons}
         </div>
-        <div class="controls-row">
+        <div class="controls-row filter-controls">
           ${searchInput}
+          ${dateFilter}
         </div>
       </div>
       
@@ -653,6 +783,9 @@ async function loadBetHistory() {
     // Render the initial page
     renderCurrentPage();
 
+    // Setup date filters
+    setupDateFilters();
+
     // Add event listeners for filter buttons
     document.querySelectorAll('.filter-btn').forEach((button) => {
       button.addEventListener('click', function () {
@@ -675,6 +808,16 @@ async function loadBetHistory() {
       currentPage = 1;
       applyFilters();
     });
+
+    const searchInputField = document.getElementById('bet-search');
+    if (searchInputField) {
+      searchInputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          currentPage = 1;
+          applyFilters();
+        }
+      });
+    }
 
     // Add event listeners to sortable headers
     document.querySelectorAll('.sortable').forEach((header) => {
@@ -708,8 +851,8 @@ async function loadBetHistory() {
     // Add pagination event listeners
     document.getElementById('prev-page').addEventListener('click', () => {
       if (currentPage > 1) {
-        // Fix unary operator
-        currentPage = currentPage - 1;
+        // Fix unary operator using operator assignment
+        currentPage -= 1;
         renderCurrentPage();
       }
     });
@@ -717,8 +860,8 @@ async function loadBetHistory() {
     document.getElementById('next-page').addEventListener('click', () => {
       const totalPages = Math.ceil(filteredBets.length / pageSize);
       if (currentPage < totalPages) {
-        // Fix unary operator
-        currentPage = currentPage + 1;
+        // Fix unary operator using operator assignment
+        currentPage += 1;
         renderCurrentPage();
       }
     });

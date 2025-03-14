@@ -3,6 +3,10 @@ import { supabaseClient } from '../api/supabase.js';
 import { showNotification } from '../utils/utils.js';
 import { handleNavigation } from '../views/router.js';
 
+// Add date filter variables
+let startDateFilter = null;
+let endDateFilter = null;
+
 // Function to load user-specific data
 async function loadUserData() {
   try {
@@ -68,6 +72,71 @@ async function loadUserData() {
   }
 }
 
+// Setup date inputs with today's date as max
+function setupDashboardDateFilters() {
+  const startDateInput = document.getElementById('dashboard-start-date');
+  const endDateInput = document.getElementById('dashboard-end-date');
+
+  if (!startDateInput || !endDateInput) return;
+
+  // Set max date to today
+  const today = new Date();
+  const todayFormatted = today.toISOString().split('T')[0];
+  startDateInput.max = todayFormatted;
+  endDateInput.max = todayFormatted;
+
+  // Default end date to today
+  endDateInput.value = todayFormatted;
+  // Default start date to 30 days ago
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  const thirtyDaysAgoFormatted = thirtyDaysAgo.toISOString().split('T')[0];
+  startDateInput.value = thirtyDaysAgoFormatted;
+
+  // Update filters when dates change
+  startDateInput.addEventListener('change', () => {
+    startDateFilter = startDateInput.value ? new Date(startDateInput.value) : null;
+    // Ensure end date is not before start date
+    if (startDateFilter && endDateInput.value) {
+      const endDate = new Date(endDateInput.value);
+      if (endDate < startDateFilter) {
+        endDateInput.value = startDateInput.value;
+        endDateFilter = new Date(startDateInput.value);
+      }
+    }
+    applyDashboardFilters();
+  });
+
+  endDateInput.addEventListener('change', () => {
+    endDateFilter = endDateInput.value ? new Date(endDateInput.value) : null;
+    // Ensure start date is not after end date
+    if (endDateFilter && startDateInput.value) {
+      const startDate = new Date(startDateInput.value);
+      if (startDate > endDateFilter) {
+        startDateInput.value = endDateInput.value;
+        startDateFilter = new Date(endDateInput.value);
+      }
+    }
+    applyDashboardFilters();
+  });
+
+  // Initialize filter variables
+  startDateFilter = startDateInput.value ? new Date(startDateInput.value) : null;
+  endDateFilter = endDateInput.value ? new Date(endDateInput.value) : null;
+
+  // Add clear filters button event listener
+  const clearFiltersBtn = document.getElementById('dashboard-clear-dates');
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      startDateInput.value = '';
+      endDateInput.value = '';
+      startDateFilter = null;
+      endDateFilter = null;
+      applyDashboardFilters();
+    });
+  }
+}
+
 // Function to load dashboard
 async function loadDashboard() {
   const contentSection = document.getElementById('content');
@@ -108,7 +177,20 @@ async function loadDashboard() {
     const searchInput = `
             <div class="search-container">
                 <input type="text" id="bet-search" placeholder="Search bets...">
-                <button id="search-button">Search</button>
+                <button id="search-button" class="btn-secondary">Search</button>
+            </div>
+        `;
+
+    // Create date filter component
+    const dateFilter = `
+            <div class="date-filter-container">
+                <div class="date-filter-label">Date Range:</div>
+                <div class="date-inputs">
+                    <input type="date" id="dashboard-start-date" placeholder="Start Date">
+                    <span>to</span>
+                    <input type="date" id="dashboard-end-date" placeholder="End Date">
+                    <button id="dashboard-clear-dates" class="btn-secondary">Clear</button>
+                </div>
             </div>
         `;
 
@@ -123,8 +205,9 @@ async function loadDashboard() {
                 <div class="controls-row">
                     ${filterButtons}
                 </div>
-                <div class="controls-row">
+                <div class="controls-row filter-controls">
                     ${searchInput}
+                    ${dateFilter}
                 </div>
             </div>
 
@@ -148,6 +231,18 @@ async function loadDashboard() {
     document.getElementById('search-button').addEventListener('click', () => {
       applyDashboardFilters();
     });
+
+    const searchInputField = document.getElementById('bet-search');
+    if (searchInputField) {
+      searchInputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          applyDashboardFilters();
+        }
+      });
+    }
+
+    // Setup date filters
+    setupDashboardDateFilters();
 
     // Initial load with all bets
     applyDashboardFilters();
@@ -178,6 +273,26 @@ function applyDashboardFilters() {
             && !bet.description.toLowerCase().includes(searchTerm)
             && !(bet.note && bet.note.toLowerCase().includes(searchTerm))) {
       return false;
+    }
+
+    // Apply date filter if set
+    if (startDateFilter || endDateFilter) {
+      const betDate = new Date(bet.date);
+
+      // Check if date is within range
+      if (startDateFilter && betDate < startDateFilter) {
+        return false;
+      }
+
+      if (endDateFilter) {
+        // Set time to end of day for the end date
+        const endOfDay = new Date(endDateFilter);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        if (betDate > endOfDay) {
+          return false;
+        }
+      }
     }
 
     return true;
@@ -796,5 +911,6 @@ function initializeMonthlyPerformanceChart(monthlyPerformanceData) {
 export {
   loadUserData,
   loadDashboard,
-  applyDashboardFilters
+  applyDashboardFilters,
+  setupDashboardDateFilters
 };
