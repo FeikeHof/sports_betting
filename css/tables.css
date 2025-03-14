@@ -36,18 +36,49 @@
     background-color: #f8f9fa;
 }
 
+/* Description cell with tooltip behavior */
 .bet-table .description-cell {
     max-width: 200px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer;
+    position: relative;
 }
 
-.bet-table .description-cell:hover {
-    white-space: normal;
-    overflow: visible;
+/* Note cell with tooltip behavior */
+.bet-table .note-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Remove the CSS-based tooltip approach since we're using JS */
+.bet-table .description-cell:hover::after,
+.bet-table .note-cell:hover::after {
+    display: none;
+}
+
+/* JavaScript-based tooltip styling */
+.cell-tooltip {
+    position: absolute;
+    z-index: 1000;
+    background-color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    border: 1px solid #ddd;
     max-width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.4;
+    color: #333;
+    font-size: 14px;
 }
 
 .bet-table .outcome-cell {
@@ -96,20 +127,6 @@
 .bet-table .summary-label {
     text-align: right;
     font-weight: 600;
-}
-
-.bet-table .note-cell {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-}
-
-.bet-table .note-cell:hover {
-    white-space: normal;
-    overflow: visible;
-    max-width: 300px;
 }
 
 /* Table sorting */
@@ -186,4 +203,22 @@
 .neutral-dash {
     color: #666; /* Neutral gray color */
     font-style: normal; /* Override the italic style from pending class */
+}
+
+/* Make tooltips appear above cells when near the bottom of the screen */
+.bet-table tr:nth-last-child(-n+3) .description-cell:hover::after,
+.bet-table tr:nth-last-child(-n+3) .note-cell:hover::after {
+    top: auto;
+    bottom: 100%;
+}
+
+/* Prevent tooltips from showing for cells with short content */
+.bet-table .description-cell:not([data-description]),
+.bet-table .note-cell:not([data-note]) {
+    cursor: default;
+}
+
+.bet-table .description-cell:not([data-description])::after,
+.bet-table .note-cell:not([data-note])::after {
+    display: none;
 } 

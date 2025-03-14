@@ -116,7 +116,7 @@ async function loadBetHistory() {
                                 <tr class="${rowClass}" data-bet-id="${bet.id}">
                                     <td>${formattedDate}</td>
                                     <td>${bet.website}</td>
-                                    <td class="description-cell">${bet.description}</td>
+                                    <td class="description-cell" data-description="${bet.description.replace(/"/g, '&quot;')}">${bet.description}</td>
                                     <td>${parseFloat(bet.odds).toFixed(2)}</td>
                                     <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
                                     <td>€${parseFloat(bet.amount).toFixed(2)}</td>
@@ -134,7 +134,7 @@ async function loadBetHistory() {
                                     <td class="ev-cell ${expectedValue >= 0 ? 'positive' : 'negative'}">
                                         ${formattedEV}
                                     </td>
-                                    <td class="note-cell">${bet.note || '-'}</td>
+                                    <td class="note-cell" data-note="${bet.note ? bet.note.replace(/"/g, '&quot;') : '-'}">${bet.note || '-'}</td>
                                     <td class="actions-cell">
                                         <button class="btn-edit" onclick="window.app.editBet(${bet.id})" title="Edit bet">Edit</button>
                                         <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" title="Delete bet">Delete</button>
@@ -235,6 +235,9 @@ async function loadBetHistory() {
         sortBets(sortBy, newDirection);
       });
     });
+    
+    // Setup tooltips after rendering the table
+    setupTooltips();
   } catch (error) {
     console.error('Error loading bet history:', error);
     contentSection.innerHTML = `
@@ -402,6 +405,97 @@ function sortBets(sortBy, direction) {
 
   // Reorder the rows
   rows.forEach((row) => tableBody.appendChild(row));
+}
+
+// Function to setup tooltips for cells with truncated text
+function setupTooltips() {
+  // Remove any existing tooltips
+  document.querySelectorAll('.cell-tooltip').forEach(tooltip => {
+    tooltip.remove();
+  });
+
+  // Setup tooltips for description cells
+  document.querySelectorAll('.description-cell').forEach(cell => {
+    const description = cell.getAttribute('data-description');
+    if (!description) return;
+    
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'cell-tooltip';
+    tooltip.textContent = description;
+    tooltip.style.display = 'none';
+    document.body.appendChild(tooltip);
+    
+    // Show tooltip on mouseenter
+    cell.addEventListener('mouseenter', function(e) {
+      const rect = cell.getBoundingClientRect();
+      
+      // Set width before positioning
+      tooltip.style.maxWidth = '300px';
+      
+      // Position tooltip
+      tooltip.style.left = (rect.left + window.scrollX) + 'px';
+      
+      // Position above or below depending on space
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 200) {
+        tooltip.style.top = (rect.top + window.scrollY - 5) + 'px';
+        tooltip.style.transform = 'translateY(-100%)';
+      } else {
+        tooltip.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        tooltip.style.transform = 'translateY(0)';
+      }
+      
+      tooltip.style.display = 'block';
+    });
+    
+    // Hide tooltip on mouseleave
+    cell.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
+  
+  // Setup tooltips for note cells
+  document.querySelectorAll('.note-cell').forEach(cell => {
+    const note = cell.getAttribute('data-note');
+    if (!note || note === '-') return;
+    
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'cell-tooltip';
+    tooltip.textContent = note;
+    tooltip.style.display = 'none';
+    document.body.appendChild(tooltip);
+    
+    // Show tooltip on mouseenter
+    cell.addEventListener('mouseenter', function(e) {
+      const rect = cell.getBoundingClientRect();
+      
+      // Set width before positioning
+      tooltip.style.maxWidth = '300px';
+      
+      // Position tooltip - align right edge with cell
+      tooltip.style.left = 'auto';
+      tooltip.style.right = (window.innerWidth - rect.right - window.scrollX) + 'px';
+      
+      // Position above or below depending on space
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < 200) {
+        tooltip.style.top = (rect.top + window.scrollY - 5) + 'px';
+        tooltip.style.transform = 'translateY(-100%)';
+      } else {
+        tooltip.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+        tooltip.style.transform = 'translateY(0)';
+      }
+      
+      tooltip.style.display = 'block';
+    });
+    
+    // Hide tooltip on mouseleave
+    cell.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+  });
 }
 
 // Function to confirm delete bet
