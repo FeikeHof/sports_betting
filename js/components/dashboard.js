@@ -52,8 +52,8 @@ async function loadUserData() {
                 </div>
             </div>
             <div class="action-buttons">
-                <button class="btn-primary" onclick="handleNavigation('new-bet')">Place New Bet</button>
-                <button class="btn-secondary" onclick="handleNavigation('dashboard')">View Dashboard</button>
+                <button class="btn-primary" onclick="window.app.handleNavigation('new-bet')">Place New Bet</button>
+                <button class="btn-secondary" onclick="window.app.handleNavigation('dashboard')">View Dashboard</button>
             </div>
         `;
   } catch (error) {
@@ -63,7 +63,7 @@ async function loadUserData() {
     contentSection.innerHTML = `
             <h2>Welcome back, ${userProfile.name}!</h2>
             <p>Error loading your betting statistics. Please try again later.</p>
-            <button class="btn-primary" onclick="loadUserData()">Retry</button>
+            <button class="btn-primary" onclick="window.app.loadUserData()">Retry</button>
         `;
   }
 }
