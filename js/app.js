@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Update navigation event listeners
-  const navLinks = document.querySelectorAll('.sidebar nav ul li a');
+  const navLinks = document.querySelectorAll('.header-nav ul li a');
   navLinks.forEach((link) => {
     link.addEventListener('click', async function (e) {
       e.preventDefault();

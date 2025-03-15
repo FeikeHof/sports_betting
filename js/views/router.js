@@ -76,13 +76,13 @@ function updateActiveNavLink(targetId) {
   }
   
   // Remove active class from all navigation links
-  const navLinks = document.querySelectorAll('.sidebar nav ul li a');
+  const navLinks = document.querySelectorAll('.header-nav ul li a');
   navLinks.forEach(link => {
     link.classList.remove('active');
   });
   
   // Add active class to current page link
-  const currentLink = document.querySelector(`.sidebar nav ul li a[href="#${targetId}"]`);
+  const currentLink = document.querySelector(`.header-nav ul li a[href="#${targetId}"]`);
   if (currentLink) {
     currentLink.classList.add('active');
   }

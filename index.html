@@ -9,6 +9,8 @@
     <!-- Font - Inter -->
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js -->
@@ -18,60 +20,63 @@
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-    <aside class="sidebar">
-        <h2>Navigation</h2>
-        <nav>
-            <ul>
-                <li><a href="#home" class="nav-link active">Home</a></li>
-                <li><a href="#new-bet" class="nav-link">New Bet</a></li>
-                <li><a href="#bet-history" class="nav-link">Bet History</a></li>
-                <li><a href="#dashboard" class="nav-link">Dashboard</a></li>
-                <li><a href="#strategy" class="nav-link">Super Boost Strategy</a></li>
-            </ul>
-        </nav>
-        
-        <!-- User Authentication Section -->
-        <div id="user-auth">
-            <!-- This div will show when user is not logged in -->
-            <div id="login-container" class="auth-container">
-                <p>Please sign in:</p>
-                <div id="g_id_onload"
-                     data-client_id="641086809551-du1r6ebnmt1bunaf76c8e8tm6lcorhhu.apps.googleusercontent.com"
-                     data-auto_prompt="false"
-                     data-cancel_on_tap_outside="false"
-                     data-prompt_parent_id="login-container">
+    <main class="main-content full-width">
+        <header class="main-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="g_id_signin"
-                     data-type="standard"
-                     data-size="large"
-                     data-theme="outline"
-                     data-text="sign_in_with"
-                     data-shape="rectangular"
-                     data-logo_alignment="left">
-                </div>
+                <h1>Bet Tracking HQ</h1>
             </div>
             
-            <!-- This div will show when user is logged in -->
-            <div id="user-info" class="auth-container" style="display: none;">
-                <div class="user-profile">
-                    <img id="user-picture" src="" alt="Profile Picture">
-                    <div class="user-details">
-                        <p id="user-name">Name</p>
-                        <p id="user-email">Email</p>
+            <nav class="header-nav">
+                <ul>
+                    <li><a href="#home" class="nav-link active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#new-bet" class="nav-link"><i class="fas fa-plus-circle"></i> New Bet</a></li>
+                    <li><a href="#bet-history" class="nav-link"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="#dashboard" class="nav-link"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="#strategy" class="nav-link"><i class="fas fa-bolt"></i> Strategy</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-right">
+                <!-- User Authentication Section -->
+                <div id="user-auth">
+                    <!-- This div will show when user is not logged in -->
+                    <div id="login-container" class="auth-container">
+                        <div id="g_id_onload"
+                             data-client_id="641086809551-du1r6ebnmt1bunaf76c8e8tm6lcorhhu.apps.googleusercontent.com"
+                             data-auto_prompt="false"
+                             data-cancel_on_tap_outside="false"
+                             data-prompt_parent_id="login-container">
+                        </div>
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-size="medium"
+                             data-theme="outline"
+                             data-text="sign_in_with"
+                             data-shape="rectangular"
+                             data-logo_alignment="left">
+                        </div>
+                    </div>
+                    
+                    <!-- This div will show when user is logged in -->
+                    <div id="user-info" class="auth-container" style="display: none;">
+                        <div class="user-profile">
+                            <img id="user-picture" src="" alt="Profile Picture">
+                            <div class="user-details">
+                                <p id="user-name">Name</p>
+                                <p id="user-email">Email</p>
+                            </div>
+                            <button id="logout-button"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+                        </div>
                     </div>
                 </div>
-                <button id="logout-button">Sign Out</button>
             </div>
-        </div>
-    </aside>
-    
-    <main class="main-content">
-        <header>
-            <h1>Welcome to Your Bet Tracking Headquarters</h1>
         </header>
         
-        <section id="content">
-            <p>Select an option from the sidebar to get started.</p>
+        <section id="content" class="page-content">
+            <p>Select an option from the navigation menu to get started.</p>
         </section>
         
         <footer>
