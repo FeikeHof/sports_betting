@@ -338,12 +338,41 @@ function renderCurrentPage() {
       </select>
     `;
 
-    const actionCellContent = `
-      <button class="btn-edit" onclick="window.app.editBet(${bet.id})" 
-        title="Edit bet" aria-label="Edit bet"></button>
-      <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" 
-        title="Delete bet" aria-label="Delete bet"></button>
-    `;
+    // Function to check if a bet is still valid (in the future)
+    function isValidBet(bet) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
+      const betDate = new Date(bet.date);
+      betDate.setHours(0, 0, 0, 0); // Reset time to start of day
+      return betDate >= today;
+    }
+
+    // Function to render bet actions
+    function renderBetActions(bet) {
+      const actions = [];
+
+      // Only show share tip button for pending bets that are not in the past
+      if (bet.outcome === 'pending' && isValidBet(bet)) {
+        actions.push(`
+          <button class="btn-share-tip" onclick="window.app.shareBetAsTip(${bet.id})" 
+            title="Share as Tip" aria-label="Share as Tip"></button>
+        `);
+      }
+
+      // Add edit button
+      actions.push(`
+        <button class="btn-edit" onclick="window.app.editBet(${bet.id})" 
+          title="Edit Bet" aria-label="Edit Bet"></button>
+      `);
+
+      // Add delete button
+      actions.push(`
+        <button class="btn-delete" onclick="window.app.confirmDeleteBet(${bet.id})" 
+          title="Delete Bet" aria-label="Delete Bet"></button>
+      `);
+
+      return actions.join('');
+    }
 
     // Determine profit/loss cell class
     let profitLossClass;
@@ -378,7 +407,7 @@ function renderCurrentPage() {
               data-note="${bet.note ? bet.note.replace(/"/g, '&quot;') : '-'}">
               ${bet.note || '-'}
           </td>
-          <td class="actions-cell">${actionCellContent}</td>
+          <td class="actions-cell">${renderBetActions(bet)}</td>
       </tr>
     `;
   }).join('');

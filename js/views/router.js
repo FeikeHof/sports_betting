@@ -3,6 +3,7 @@ import { loadNewBetForm } from '../components/newBet.js';
 import { loadBetHistory } from '../components/betHistory.js';
 import { loadDashboard, loadUserData } from '../components/dashboard.js';
 import { loadSuperBoostStrategy } from '../components/strategy.js';
+import { loadTips } from '../components/tips.js';
 
 // Function to handle navigation
 async function handleNavigation(targetId) {
@@ -10,14 +11,14 @@ async function handleNavigation(targetId) {
 
   // Update active navigation link
   updateActiveNavLink(targetId);
-  
+
   // If no specific target or 'home' is provided, default to home
   if (!targetId || targetId === '' || targetId === 'home') {
     targetId = 'home';
   }
 
   // Check authentication for protected routes
-  if (['new-bet', 'bet-history', 'dashboard'].includes(targetId)) {
+  if (['new-bet', 'bet-history', 'dashboard', 'tips'].includes(targetId)) {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       contentSection.innerHTML = `
@@ -46,6 +47,7 @@ async function handleNavigation(targetId) {
                         <li>Analyze your betting performance</li>
                         <li>Follow specialized betting strategies</li>
                         <li>View comprehensive statistics and charts</li>
+                        <li>Share and discover betting tips from the community</li>
                     </ul>
                 `;
       }
@@ -62,6 +64,9 @@ async function handleNavigation(targetId) {
     case 'strategy':
       loadSuperBoostStrategy();
       break;
+    case 'tips':
+      loadTips();
+      break;
     default:
       // If unknown route, redirect to home
       handleNavigation('home');
@@ -74,13 +79,13 @@ function updateActiveNavLink(targetId) {
   if (!targetId || targetId === '') {
     targetId = 'home';
   }
-  
+
   // Remove active class from all navigation links
   const navLinks = document.querySelectorAll('.header-nav ul li a');
-  navLinks.forEach(link => {
+  navLinks.forEach((link) => {
     link.classList.remove('active');
   });
-  
+
   // Add active class to current page link
   const currentLink = document.querySelector(`.header-nav ul li a[href="#${targetId}"]`);
   if (currentLink) {

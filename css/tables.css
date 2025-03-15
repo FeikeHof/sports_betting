@@ -505,4 +505,76 @@
         flex: 1;
         width: auto;
     }
+}
+
+.btn-share-tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    color: #666;
+    background: none;
+}
+
+.btn-share-tip::before {
+    content: '\f1e0';  /* Font Awesome share icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 14px;
+}
+
+.btn-share-tip:hover {
+    opacity: 1;
+}
+
+/* Column widths for bet history */
+.bet-table:not(.tips-container .bet-table) {
+    table-layout: fixed;
+}
+
+.bet-table:not(.tips-container .bet-table) .date-cell {
+    width: 90px;
+}
+
+.bet-table:not(.tips-container .bet-table) .website-cell {
+    width: 55px;
+}
+
+.bet-table:not(.tips-container .bet-table) .description-cell {
+    width: 380px;
+}
+
+.bet-table:not(.tips-container .bet-table) .odds-cell {
+    width: 70px;
+}
+
+.bet-table:not(.tips-container .bet-table) .amount-cell {
+    width: 80px;
+}
+
+.bet-table:not(.tips-container .bet-table) .outcome-cell {
+    width: 90px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+.bet-table:not(.tips-container .bet-table) .profit-loss {
+    width: 90px;
+}
+
+.bet-table:not(.tips-container .bet-table) .ev-cell {
+    width: 90px;
+}
+
+.bet-table:not(.tips-container .bet-table) .note-cell {
+    width: 80px;
+}
+
+.bet-table:not(.tips-container .bet-table) .actions-cell {
+    width: 50px;
 } 

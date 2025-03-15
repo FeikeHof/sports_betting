@@ -6,6 +6,7 @@ import {
 } from './components/betHistory.js';
 import { loadDashboard, loadUserData, applyDashboardFilters } from './components/dashboard.js';
 import { loadSuperBoostStrategy } from './components/strategy.js';
+import { loadTips, shareBetAsTip, confirmDeleteTip } from './components/tips.js';
 import { handleNavigation } from './views/router.js';
 import { showNotification } from './utils/utils.js';
 
@@ -40,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserData,
     applyDashboardFilters,
     loadSuperBoostStrategy,
+    loadTips,
+    shareBetAsTip,
+    confirmDeleteTip,
     showNotification
   };
 

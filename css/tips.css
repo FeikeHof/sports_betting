@@ -1,0 +1,315 @@
+/* Tips Grid Layout */
+.tips-container {
+  margin-top: 20px;
+}
+
+#tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+/* Tip Card */
+.tip-card {
+  background: var(--surface-color);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tip-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Tip Header */
+.tip-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.tipper-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tipper-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tipper-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.tip-date {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+/* Bet Details */
+.bet-details {
+  margin-bottom: 1rem;
+}
+
+.bet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.bet-website {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.bet-odds {
+  color: #7f8c8d;
+}
+
+.description {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.bet-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bet-table th,
+.bet-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eaeaea;
+  text-align: left;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bet-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #2c3e50;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #eaeaea;
+}
+
+.bet-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Column widths */
+.tips-container .bet-table .date-cell {
+  width: 90px;
+}
+
+.tips-container .bet-table .tipper-cell {
+  width: 65px;
+}
+
+.tips-container .bet-table .website-cell {
+  width: 60px;
+}
+
+.tips-container .bet-table .description-cell {
+  width: 60%;
+}
+
+.tips-container .bet-table .odds-cell,
+.tips-container .bet-table .boosted-cell {
+  width: 70px;
+}
+
+.tips-container .bet-table .actions-cell {
+  width: 50px;
+}
+
+/* Ensure all headers are left-aligned except for odds columns */
+.bet-table th {
+  text-align: left;
+  font-family: Inter, -apple-system, system-ui, sans-serif;
+}
+
+.bet-table th.odds-cell,
+.bet-table th.boosted-cell {
+  text-align: right;
+}
+
+/* Sortable headers */
+.sortable {
+  cursor: pointer;
+  position: relative;
+  padding-right: 24px;
+}
+
+.sortable:hover {
+  background-color: #eaecef;
+}
+
+/* Sort icon */
+.sort-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  line-height: 1;
+  font-size: 14px;
+  opacity: 0.7;
+  pointer-events: none;
+  font-family: sans-serif;
+  width: 14px;
+  text-align: center;
+  display: inline-block;
+}
+
+.sort-icon:not(:empty) {
+  opacity: 1;
+  color: #0066cc;
+}
+
+/* Pagination controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  gap: 15px;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#page-info {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Tooltip */
+.cell-tooltip {
+  position: absolute;
+  z-index: 1000;
+  background-color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ddd;
+  max-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Share Tip Dialog */
+.share-tip-form {
+  padding: 1.5rem;
+  min-width: 400px;
+}
+
+.share-tip-form h3 {
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bet-table .tipper-cell,
+  .bet-table .boosted-cell {
+    display: none;
+  }
+
+  .bet-table .description-cell {
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bet-table .website-cell {
+    display: none;
+  }
+
+  .bet-table .description-cell {
+    min-width: 200px;
+  }
+}
+
+/* Status styling */
+.bet-table .status-cell {
+  font-weight: 600;
+}
+
+.bet-table .status-cell.win {
+  color: #27ae60;
+}
+
+.bet-table .status-cell.loss {
+  color: #e74c3c;
+}
+
+.bet-table .status-cell.pending {
+  color: #f39c12;
+}
+
+/* Loading and empty states */
+.loading, .no-tips {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-tips {
+  font-style: italic;
+  background-color: #f8f9fa;
+} 
