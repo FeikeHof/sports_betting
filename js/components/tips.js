@@ -19,9 +19,6 @@ async function fetchTips() {
 
     if (tipsError) throw tipsError;
 
-    // Log the bet IDs we're looking for
-    console.log('Bet IDs to fetch:', tips.map((t) => t.bet_id));
-
     // Check if the bets exist
     const { data: bets, error: betsError } = await supabaseClient
       .from('bets')
@@ -30,8 +27,6 @@ async function fetchTips() {
 
     if (betsError) {
       console.error('Error fetching bets:', betsError);
-    } else {
-      console.log('Found bets:', bets);
     }
 
     // Store the current user's ID for later use
@@ -56,8 +51,6 @@ async function fetchTips() {
       `)
       .or(`is_public.eq.true,tipper_id.eq.${user.id}`)
       .order('created_at', { ascending: false });
-
-    console.log('Tips data:', JSON.stringify(fullTips, null, 2));
 
     if (error) throw error;
     return fullTips || [];
@@ -369,54 +362,68 @@ function sortTips(sortBy, direction) {
   renderCurrentPage();
 }
 
+// Function to update the tips UI
+function updateTipsUI(tips) {
+  // Store the tips in the filteredTips array for pagination
+  filteredTips = tips;
+  
+  // Reset to first page when updating tips
+  currentPage = 1;
+  
+  // Render the current page
+  renderCurrentPage();
+}
+
 // Function to load tips page
 async function loadTips() {
-  const contentSection = document.getElementById('content');
-  contentSection.innerHTML = `
-    <div class="tips-header">
-      <h2>Community Tips</h2>
-    </div>
-    <div class="table-container">
-      <table class="bet-table">
-        <thead>
-          <tr>
-            <th class="sortable date-cell" data-sort="date" title="Date when the tip was shared">
-              Date <span class="sort-icon">↓</span>
-            </th>
-            <th class="tipper-cell" title="Tipper who shared this tip">Tipper</th>
-            <th class="website-cell" title="Betting website or bookmaker">Website</th>
-            <th class="description-cell" title="Description of the bet">Description</th>
-            <th class="sortable odds-cell" data-sort="odds" title="Original odds for this bet">
-              Odds <span class="sort-icon"></span>
-            </th>
-            <th class="sortable boosted-cell" data-sort="boosted_odds" title="Boosted odds, if applicable">
-              Boosted <span class="sort-icon"></span>
-            </th>
-            <th class="actions-cell" title="Actions you can perform on this tip">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tipsContainer">
-          <tr><td colspan="7" class="loading">Loading tips...</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="pagination-controls">
-      <button id="prevPage" class="btn-secondary">Previous</button>
-      <span id="page-info">
-        Page <span id="current-page">1</span> of <span id="total-pages">1</span>
-      </span>
-      <button id="nextPage" class="btn-secondary">Next</button>
-    </div>
-  `;
+  try {
+    const { data: tips, error } = await supabaseClient
+      .from('tips')
+      .select(`
+        *,
+        profile:tipper_id (
+          id,
+          email
+        )
+      `)
+      .order('created_at', { ascending: false });
 
-  setupEventListeners();
-  const tips = await fetchTips();
-  filteredTips = tips;
-  renderCurrentPage();
+    if (error) throw error;
+
+    // Fetch the associated bets
+    const betIds = tips.map((tip) => tip.bet_id);
+
+    const { data: bets, error: betsError } = await supabaseClient
+      .from('bets')
+      .select('*')
+      .in('id', betIds);
+
+    if (betsError) {
+      console.error('Error fetching bets:', betsError);
+      return;
+    }
+
+    // Combine tips with bet data
+    const fullTips = tips.map((tip) => {
+      const bet = bets.find((b) => b.id === tip.bet_id);
+      return { ...tip, bet };
+    });
+
+    // Update the UI with the tips data
+    updateTipsUI(fullTips);
+    
+    // Set up event listeners for sorting and pagination
+    setupEventListeners();
+  } catch (error) {
+    console.error('Full error:', error);
+    // Show error message to user
+    showNotification('Error loading tips', 'error');
+  }
 }
 
 export {
   loadTips,
   shareBetAsTip,
-  confirmDeleteTip
+  confirmDeleteTip,
+  updateTipsUI
 };

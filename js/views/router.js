@@ -65,6 +65,32 @@ async function handleNavigation(targetId) {
       loadSuperBoostStrategy();
       break;
     case 'tips':
+      contentSection.innerHTML = `
+        <div class="tips-container">
+          <div class="table-container">
+            <table class="bet-table">
+              <thead>
+                <tr>
+                  <th class="sortable" data-sort="date">Date</th>
+                  <th>Tipper</th>
+                  <th>Website</th>
+                  <th>Description</th>
+                  <th class="sortable" data-sort="odds">Odds</th>
+                  <th class="sortable" data-sort="boosted_odds">Boosted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tipsContainer">
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-controls">
+            <button id="prevPage" disabled>Previous</button>
+            <span id="page-info">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+            <button id="nextPage" disabled>Next</button>
+          </div>
+        </div>
+      `;
       loadTips();
       break;
     default:
