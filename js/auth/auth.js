@@ -234,6 +234,5 @@ export {
   handleCredentialResponse,
   signOut,
   checkLoginStatus,
-  getCurrentUser,
-  userProfile
+  getCurrentUser
 };
