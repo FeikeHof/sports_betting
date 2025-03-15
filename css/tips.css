@@ -83,35 +83,66 @@
 }
 
 /* Table Styles */
-.table-container {
+.tips-container .table-container {
   overflow-x: auto;
   margin: 20px 0;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.bet-table {
+.tips-table {
   width: 100%;
-  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
+  table-layout: fixed;
 }
 
-.bet-table th,
-.bet-table td {
-  padding: 12px 16px;
+/* Column widths */
+.tips-table .date-cell {
+  width: 85px;
+}
+
+.tips-table .tipper-cell {
+  width: 160px;
+}
+
+.tips-table .website-cell {
+  width: 70px;
+}
+
+.tips-table .description-cell {
+  width: 800px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tips-table .odds-cell,
+.tips-table .boosted-cell {
+  width: 65px;
+  text-align: right;
+}
+
+.tips-table .actions-cell {
+  width: 40px;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+/* Cell styles */
+.tips-table th,
+.tips-table td {
+  padding: 12px 8px;
   border-bottom: 1px solid #eaeaea;
   text-align: left;
   font-size: 14px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.bet-table th {
+/* Header styles */
+.tips-table th {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #2c3e50;
@@ -121,45 +152,83 @@
   border-bottom: 2px solid #eaeaea;
 }
 
-.bet-table tbody tr:hover {
+/* Loading state */
+.tips-table .loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Hover effect */
+.tips-table tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-/* Column widths */
-.tips-container .bet-table .date-cell {
-  width: 90px;
+/* Ensure the table container handles overflow properly */
+.tips-container .table-container {
+  max-width: 100%;
+  overflow-x: auto;
 }
 
-.tips-container .bet-table .tipper-cell {
-  width: 65px;
+/* Remove any max-width constraints */
+.tips-table .description-cell {
+  max-width: none;
 }
 
-.tips-container .bet-table .website-cell {
-  width: 60px;
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .tips-table .description-cell {
+    width: 600px;
+  }
 }
 
-.tips-container .bet-table .description-cell {
-  width: 60%;
+@media (max-width: 768px) {
+  .tips-table .description-cell {
+    width: 400px;
+  }
+  
+  .tips-table .tipper-cell {
+    width: 120px;
+  }
 }
 
-.tips-container .bet-table .odds-cell,
-.tips-container .bet-table .boosted-cell {
-  width: 70px;
+@media (max-width: 480px) {
+  .bet-table .website-cell {
+    display: none;
+  }
+
+  .bet-table .description-cell {
+    min-width: 200px;
+  }
 }
 
-.tips-container .bet-table .actions-cell {
-  width: 50px;
+/* Status styling */
+.bet-table .status-cell {
+  font-weight: 600;
 }
 
-/* Ensure all headers are left-aligned except for odds columns */
-.bet-table th {
-  text-align: left;
-  font-family: Inter, -apple-system, system-ui, sans-serif;
+.bet-table .status-cell.win {
+  color: #27ae60;
 }
 
-.bet-table th.odds-cell,
-.bet-table th.boosted-cell {
-  text-align: right;
+.bet-table .status-cell.loss {
+  color: #e74c3c;
+}
+
+.bet-table .status-cell.pending {
+  color: #f39c12;
+}
+
+/* Loading and empty states */
+.loading, .no-tips {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-tips {
+  font-style: italic;
+  background-color: #f8f9fa;
 }
 
 /* Sortable headers */
@@ -254,62 +323,4 @@
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
-}
-
-/* Loading state */
-.loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .bet-table .tipper-cell,
-  .bet-table .boosted-cell {
-    display: none;
-  }
-
-  .bet-table .description-cell {
-    min-width: 250px;
-  }
-}
-
-@media (max-width: 480px) {
-  .bet-table .website-cell {
-    display: none;
-  }
-
-  .bet-table .description-cell {
-    min-width: 200px;
-  }
-}
-
-/* Status styling */
-.bet-table .status-cell {
-  font-weight: 600;
-}
-
-.bet-table .status-cell.win {
-  color: #27ae60;
-}
-
-.bet-table .status-cell.loss {
-  color: #e74c3c;
-}
-
-.bet-table .status-cell.pending {
-  color: #f39c12;
-}
-
-/* Loading and empty states */
-.loading, .no-tips {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
-
-.no-tips {
-  font-style: italic;
-  background-color: #f8f9fa;
 } 

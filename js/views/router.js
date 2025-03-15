@@ -70,16 +70,16 @@ async function handleNavigation(targetId) {
         <div class="tips-container">
           <h2>Shared Tips</h2>
           <div class="table-container">
-            <table class="bet-table">
+            <table class="tips-table">
               <thead>
                 <tr>
-                  <th class="sortable" data-sort="date">Date</th>
-                  <th>Tipper</th>
-                  <th>Website</th>
-                  <th>Description</th>
-                  <th class="sortable" data-sort="odds">Odds</th>
-                  <th class="sortable" data-sort="boosted_odds">Boosted</th>
-                  <th>Actions</th>
+                  <th class="date-cell">Date</th>
+                  <th class="tipper-cell">Tipper</th>
+                  <th class="website-cell">Website</th>
+                  <th class="description-cell">Description</th>
+                  <th class="odds-cell">Odds</th>
+                  <th class="boosted-cell">Boosted</th>
+                  <th class="actions-cell">Actions</th>
                 </tr>
               </thead>
               <tbody id="tipsContainer">
@@ -97,13 +97,8 @@ async function handleNavigation(targetId) {
         </div>
       `;
       
-      // Use requestAnimationFrame to ensure DOM is painted before proceeding
-      requestAnimationFrame(() => {
-        // Double-check in a setTimeout to ensure browser has completed all tasks
-        setTimeout(() => {
-          loadTips();
-        }, 50);
-      });
+      // Wait for the DOM to be ready before loading tips
+      requestAnimationFrame(() => loadTips());
       break;
     default:
       // If unknown route, redirect to home
