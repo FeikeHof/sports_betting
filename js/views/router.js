@@ -65,8 +65,10 @@ async function handleNavigation(targetId) {
       loadSuperBoostStrategy();
       break;
     case 'tips':
+      // Set up the tips page structure
       contentSection.innerHTML = `
         <div class="tips-container">
+          <h2>Shared Tips</h2>
           <div class="table-container">
             <table class="bet-table">
               <thead>
@@ -81,6 +83,9 @@ async function handleNavigation(targetId) {
                 </tr>
               </thead>
               <tbody id="tipsContainer">
+                <tr>
+                  <td colspan="7" class="loading">Loading tips...</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -91,7 +96,14 @@ async function handleNavigation(targetId) {
           </div>
         </div>
       `;
-      loadTips();
+      
+      // Use requestAnimationFrame to ensure DOM is painted before proceeding
+      requestAnimationFrame(() => {
+        // Double-check in a setTimeout to ensure browser has completed all tasks
+        setTimeout(() => {
+          loadTips();
+        }, 50);
+      });
       break;
     default:
       // If unknown route, redirect to home

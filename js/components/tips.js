@@ -10,34 +10,16 @@ let filteredTips = [];
 async function fetchTips() {
   try {
     const { data: { user } } = await supabaseClient.auth.getUser();
-
-    // First, let's check if the bet exists
-    const { data: tips, error: tipsError } = await supabaseClient
-      .from('tips')
-      .select('bet_id')
-      .or(`is_public.eq.true,tipper_id.eq.${user.id}`);
-
-    if (tipsError) throw tipsError;
-
-    // Check if the bets exist
-    const { data: bets, error: betsError } = await supabaseClient
-      .from('bets')
-      .select('id, website, odds, boosted_odds, description, outcome')
-      .in('id', tips.map((t) => t.bet_id));
-
-    if (betsError) {
-      console.error('Error fetching bets:', betsError);
+    if (!user) {
+      throw new Error('User not authenticated');
     }
 
-    // Store the current user's ID for later use
-    window.currentUserId = user.id;
-
-    // Now fetch everything together
+    // Fetch all tips in a single query with proper joins
     const { data: fullTips, error } = await supabaseClient
       .from('tips')
       .select(`
         *,
-        bet:bet_id (
+        bet:bets!inner(
           id,
           website,
           odds,
@@ -45,7 +27,7 @@ async function fetchTips() {
           description,
           outcome
         ),
-        profile:tipper_id (
+        profile:profiles!inner(
           email
         )
       `)
@@ -53,6 +35,10 @@ async function fetchTips() {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
+
+    // Store the current user's ID for later use
+    window.currentUserId = user.id;
+
     return fullTips || [];
   } catch (error) {
     console.error('Full error:', error);
@@ -83,6 +69,21 @@ async function shareBetAsTip(betId) {
 
     try {
       const { data: { user } } = await supabaseClient.auth.getUser();
+
+      // Check if tip already exists for this bet and user
+      const { data: existingTips, error: checkError } = await supabaseClient
+        .from('tips')
+        .select('*')
+        .match({ bet_id: betId, tipper_id: user.id });
+
+      if (checkError) throw checkError;
+      
+      if (existingTips && existingTips.length > 0) {
+        showNotification('You have already shared this bet as a tip', 'error');
+        dialog.close();
+        dialog.remove();
+        return;
+      }
 
       // First, ensure the user has a profile
       const { error: profileError } = await supabaseClient
@@ -122,8 +123,11 @@ async function shareBetAsTip(betId) {
 
       if (error) throw error;
       showNotification('Tip shared successfully!', 'success');
-      loadTips();
+      
+      // Wait a brief moment before reloading tips to ensure DOM is ready
+      setTimeout(() => loadTips(), 100);
     } catch (error) {
+      console.error('Error sharing tip:', error);
       showNotification(`Error sharing tip: ${error.message}`, 'error');
     }
 
@@ -377,40 +381,24 @@ function updateTipsUI(tips) {
 // Function to load tips page
 async function loadTips() {
   try {
-    const { data: tips, error } = await supabaseClient
-      .from('tips')
-      .select(`
-        *,
-        profile:tipper_id (
-          id,
-          email
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Fetch the associated bets
-    const betIds = tips.map((tip) => tip.bet_id);
-
-    const { data: bets, error: betsError } = await supabaseClient
-      .from('bets')
-      .select('*')
-      .in('id', betIds);
-
-    if (betsError) {
-      console.error('Error fetching bets:', betsError);
-      return;
+    // Use the existing fetchTips function that has the correct query structure
+    const tips = await fetchTips();
+    
+    // Get the container
+    const container = document.getElementById('tipsContainer');
+    if (!container) {
+      console.warn('Tips container not immediately available, waiting for DOM...');
+      // Wait for a short time and try again
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const retryContainer = document.getElementById('tipsContainer');
+      if (!retryContainer) {
+        console.error('Tips container still not found after retry');
+        return;
+      }
     }
-
-    // Combine tips with bet data
-    const fullTips = tips.map((tip) => {
-      const bet = bets.find((b) => b.id === tip.bet_id);
-      return { ...tip, bet };
-    });
-
+    
     // Update the UI with the tips data
-    updateTipsUI(fullTips);
+    updateTipsUI(tips);
     
     // Set up event listeners for sorting and pagination
     setupEventListeners();
