@@ -96,7 +96,7 @@ async function handleNavigation(targetId) {
           </div>
         </div>
       `;
-      
+
       // Wait for the DOM to be ready before loading tips
       requestAnimationFrame(() => loadTips());
       break;

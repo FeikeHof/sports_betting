@@ -77,7 +77,7 @@ async function shareBetAsTip(betId) {
         .match({ bet_id: betId, tipper_id: user.id });
 
       if (checkError) throw checkError;
-      
+
       if (existingTips && existingTips.length > 0) {
         showNotification('You have already shared this bet as a tip', 'error');
         dialog.close();
@@ -100,12 +100,12 @@ async function shareBetAsTip(betId) {
           if (username.length <= 2) return `${username}@${domain}`;
           return `${username.slice(0, 2)}${'*'.repeat(username.length - 2)}@${domain}`;
         };
-        
+
         // If profile doesn't exist, create it with masked email
         const { error: insertError } = await supabaseClient
           .from('profiles')
-          .insert([{ 
-            id: user.id, 
+          .insert([{
+            id: user.id,
             email: maskEmail(user.email)
           }]);
 
@@ -123,7 +123,7 @@ async function shareBetAsTip(betId) {
 
       if (error) throw error;
       showNotification('Tip shared successfully!', 'success');
-      
+
       // Wait a brief moment before reloading tips to ensure DOM is ready
       setTimeout(() => loadTips(), 100);
     } catch (error) {
@@ -370,10 +370,10 @@ function sortTips(sortBy, direction) {
 function updateTipsUI(tips) {
   // Store the tips in the filteredTips array for pagination
   filteredTips = tips;
-  
+
   // Reset to first page when updating tips
   currentPage = 1;
-  
+
   // Render the current page
   renderCurrentPage();
 }
@@ -383,23 +383,23 @@ async function loadTips() {
   try {
     // Use the existing fetchTips function that has the correct query structure
     const tips = await fetchTips();
-    
+
     // Get the container
     const container = document.getElementById('tipsContainer');
     if (!container) {
       console.warn('Tips container not immediately available, waiting for DOM...');
       // Wait for a short time and try again
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       const retryContainer = document.getElementById('tipsContainer');
       if (!retryContainer) {
         console.error('Tips container still not found after retry');
         return;
       }
     }
-    
+
     // Update the UI with the tips data
     updateTipsUI(tips);
-    
+
     // Set up event listeners for sorting and pagination
     setupEventListeners();
   } catch (error) {
