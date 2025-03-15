@@ -282,70 +282,42 @@
     width: 70px;
 }
 
-/* Currency formatting for cells only (not headers) */
+/* Common numeric cell alignment and font settings */
 .bet-table td:nth-child(6), /* Amount */
 .bet-table td:nth-child(8), /* P/L */
-.bet-table td:nth-child(9) { /* EV */
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
-    text-align: right;
-    font-family: Inter, sans-serif;
-    min-width: 70px;
-}
-
-/* Increase specificity for profit-loss cell to override any other styles */
-.bet-table .profit-loss {
-    text-align: right;
-    font-family: Inter, sans-serif;
-    font-feature-settings: "tnum";
-}
-
-/* Increase specificity for ev-cell to override any other styles */
+.bet-table td:nth-child(9), /* EV */
+.bet-table .profit-loss,
 .bet-table .ev-cell {
     text-align: right;
     font-family: Inter, sans-serif;
+    font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
+    min-width: 70px;
 }
 
-/* Ensure all headers are left-aligned regardless of column data alignment */
-.bet-table th {
-    text-align: left !important;
-    font-family: Inter, sans-serif;
-}
-
-/* Make all sortable headers consistent */
-.bet-table th.sortable {
-    transition: background-color 0.2s;
-    cursor: pointer;
-}
-
-.bet-table th.sortable:hover {
-    background-color: #eaecef;
-}
-
-/* Remove duplicated rule */
-.bet-table th.sortable[data-sort="amount"],
-.bet-table th.sortable[data-sort="profit-loss"],
-.bet-table th.sortable[data-sort="ev"] {
-    padding-left: 12px; /* Keep some padding but reduce it */
-}
-
-/* Remove center text content span rule */
-/* Remove right-align monetary value headers rule */
-
-/* Add styles for the date filter component */
-.date-filter-container {
+/* Filter controls and layout */
+.filter-controls {
     display: flex;
     align-items: center;
-    margin-left: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
 }
 
-.date-filter-label {
-    font-weight: 500;
-    margin-right: 12px;
-    white-space: nowrap;
+.bet-filters,
+.date-inputs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Common input styles */
+.date-inputs input[type="date"],
+#bet-search {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     font-size: 14px;
-    color: #444;
+    font-family: inherit;
 }
 
 .date-inputs {
@@ -355,55 +327,18 @@
 }
 
 .date-inputs input[type="date"] {
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: inherit;
     min-width: 140px;
-    font-size: 14px;
 }
 
 .date-inputs span {
     color: #666;
     font-size: 14px;
-}
-
-/* Remove custom styling for clear button - it will use btn-secondary styling */
-/* #clear-date-filters {
-    padding: 6px 12px;
-    font-size: 14px;
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-#clear-date-filters:hover {
-    background-color: #e9e9e9;
-} */
-
-.filter-controls {
-    display: flex;
+    line-height: 1;
+    display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
 }
 
-/* Update styles for the history controls and filter layout */
-.history-controls {
-    margin-bottom: 20px;
-}
-
-.controls-row {
-    margin-bottom: 10px;
-}
-
-.bet-filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
+/* Common filter button styles */
 .filter-btn {
     padding: 6px 12px;
     background-color: #f5f5f5;
@@ -422,6 +357,67 @@
     background-color: #0066cc;
     color: white;
     border-color: #0066cc;
+}
+
+/* Column widths for bet history - consolidate selectors */
+.bet-table:not(.tips-container .bet-table) {
+    table-layout: fixed;
+}
+
+.bet-table:not(.tips-container .bet-table) {
+    & .date-cell { width: 90px; }
+    & .website-cell { width: 55px; }
+    & .description-cell { width: 380px; }
+    & .odds-cell { width: 70px; }
+    & .amount-cell { width: 80px; }
+    & .outcome-cell { 
+        width: 90px;
+        white-space: nowrap;
+        overflow: visible;
+    }
+    & .profit-loss { width: 90px; }
+    & .ev-cell { width: 90px; }
+    & .note-cell { width: 80px; }
+    & .actions-cell { width: 50px; }
+}
+
+/* Add styles for the date filter component */
+.date-filter-container {
+    display: flex;
+    align-items: center;
+    margin-left: 24px;
+}
+
+.date-filter-label {
+    font-weight: 500;
+    margin-right: 12px;
+    white-space: nowrap;
+    font-size: 14px;
+    color: #444;
+}
+
+/* Remove custom styling for clear button - it will use btn-secondary styling */
+/* #clear-date-filters {
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#clear-date-filters:hover {
+    background-color: #e9e9e9;
+} */
+
+/* Update styles for the history controls and filter layout */
+.history-controls {
+    margin-bottom: 20px;
+}
+
+.controls-row {
+    margin-bottom: 10px;
 }
 
 /* Improved search and date filter container styling */
@@ -498,51 +494,4 @@
 
 .btn-share-tip:hover {
     opacity: 1;
-}
-
-/* Column widths for bet history */
-.bet-table:not(.tips-container .bet-table) {
-    table-layout: fixed;
-}
-
-.bet-table:not(.tips-container .bet-table) .date-cell {
-    width: 90px;
-}
-
-.bet-table:not(.tips-container .bet-table) .website-cell {
-    width: 55px;
-}
-
-.bet-table:not(.tips-container .bet-table) .description-cell {
-    width: 380px;
-}
-
-.bet-table:not(.tips-container .bet-table) .odds-cell {
-    width: 70px;
-}
-
-.bet-table:not(.tips-container .bet-table) .amount-cell {
-    width: 80px;
-}
-
-.bet-table:not(.tips-container .bet-table) .outcome-cell {
-    width: 90px;
-    white-space: nowrap;
-    overflow: visible;
-}
-
-.bet-table:not(.tips-container .bet-table) .profit-loss {
-    width: 90px;
-}
-
-.bet-table:not(.tips-container .bet-table) .ev-cell {
-    width: 90px;
-}
-
-.bet-table:not(.tips-container .bet-table) .note-cell {
-    width: 80px;
-}
-
-.bet-table:not(.tips-container .bet-table) .actions-cell {
-    width: 50px;
 } 

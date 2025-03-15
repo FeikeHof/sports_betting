@@ -6,7 +6,8 @@
 .btn-secondary,
 .btn-edit,
 .btn-delete,
-.btn-share-tip {
+.btn-share-tip,
+#search-button {
     border: none;
     cursor: pointer;
     color: white;
@@ -15,7 +16,8 @@
 
 /* Regular buttons */
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+#search-button {
     padding: 12px 20px;
     border-radius: 5px;
     font-weight: 500;
@@ -37,15 +39,12 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Button colors */
-.btn-primary { background-color: #3498db; }
-.btn-primary:hover { background-color: #2980b9; }
+/* Button colors and hover states */
+.btn-primary, .btn-edit, #search-button { background-color: #3498db; }
+.btn-primary:hover, .btn-edit:hover, #search-button:hover { background-color: #2980b9; }
 
 .btn-secondary { background-color: #7f8c8d; }
 .btn-secondary:hover { background-color: #6c7a7d; }
-
-.btn-edit { background-color: #3498db; }
-.btn-edit:hover { background-color: #2980b9; }
 
 .btn-delete { background-color: #e74c3c; }
 .btn-delete:hover { background-color: #c0392b; }
@@ -100,43 +99,22 @@
     to { transform: translateX(0); opacity: 1; }
 }
 
-.notification.success {
-    background-color: #2ecc71;
+/* Notification colors */
+.notification {
+    &.success { background-color: #2ecc71; }
+    &.error { background-color: #e74c3c; }
+    &.info { background-color: #3498db; }
 }
 
-.notification.error {
-    background-color: #e74c3c;
-}
-
-.notification.info {
-    background-color: #3498db;
-}
-
-/* Filter Buttons */
+/* Search and Filter containers */
+.search-container,
 .bet-filters {
     display: flex;
     gap: 10px;
+}
+
+.bet-filters {
     margin-bottom: 20px;
-}
-
-.filter-btn {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    background-color: #f1f1f1;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.filter-btn.active {
-    background-color: #3498db;
-    color: white;
-}
-
-/* Search */
-.search-container {
-    display: flex;
-    gap: 10px;
 }
 
 #bet-search {
