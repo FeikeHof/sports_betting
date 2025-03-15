@@ -1,49 +1,28 @@
 /* Component Styles
 -------------------------------------------------- */
 
-/* Buttons */
+/* Common button styles */
+.btn-primary,
+.btn-secondary,
+.btn-edit,
+.btn-delete,
+.btn-share-tip {
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+/* Regular buttons */
 .btn-primary,
 .btn-secondary {
     padding: 12px 20px;
     border-radius: 5px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
     outline: none;
 }
 
-.btn-primary {
-    background-color: #3498db;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background-color: #7f8c8d;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #6c7a7d;
-}
-
-.btn-primary:active,
-.btn-secondary:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.btn-small {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-}
-
-/* Action buttons for bet history */
+/* Action buttons */
 .btn-edit,
 .btn-delete,
 .btn-share-tip {
@@ -51,69 +30,54 @@
     height: 36px;
     border-radius: 50%;
     font-size: 0.85rem;
-    cursor: pointer;
-    border: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     margin: 0 3px;
-    transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.btn-edit {
-    background-color: #3498db;
-    color: white;
-}
+/* Button colors */
+.btn-primary { background-color: #3498db; }
+.btn-primary:hover { background-color: #2980b9; }
 
-.btn-edit:before {
-    content: "✎";
-    font-size: 1rem;
-}
+.btn-secondary { background-color: #7f8c8d; }
+.btn-secondary:hover { background-color: #6c7a7d; }
 
-.btn-edit:hover {
-    background-color: #2980b9;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-}
+.btn-edit { background-color: #3498db; }
+.btn-edit:hover { background-color: #2980b9; }
 
-.btn-delete {
-    background-color: #e74c3c;
-    color: white;
-}
+.btn-delete { background-color: #e74c3c; }
+.btn-delete:hover { background-color: #c0392b; }
 
-.btn-delete:before {
-    content: "✕";
-    font-size: 1rem;
-}
+.btn-share-tip { background-color: #27ae60; }
+.btn-share-tip:hover { background-color: #219a52; }
 
-.btn-delete:hover {
-    background-color: #c0392b;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-}
-
-.btn-share-tip {
-    background-color: #27ae60;
-    color: white;
-}
-
-.btn-share-tip:before {
-    content: "↗";
-    font-size: 1rem;
-}
-
+/* Common hover effects for action buttons */
+.btn-edit:hover,
+.btn-delete:hover,
 .btn-share-tip:hover {
-    background-color: #219a52;
     transform: translateY(-1px);
     box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
+/* Common active state for action buttons */
 .btn-edit:active,
 .btn-delete:active,
 .btn-share-tip:active {
     transform: translateY(0);
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Button icons */
+.btn-edit:before { content: "✎"; }
+.btn-delete:before { content: "✕"; }
+.btn-share-tip:before { content: "↗"; }
+
+.btn-edit:before,
+.btn-delete:before,
+.btn-share-tip:before {
+    font-size: 1rem;
 }
 
 /* Notifications */

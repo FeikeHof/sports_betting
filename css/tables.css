@@ -36,81 +36,49 @@
     background-color: #f8f9fa;
 }
 
-/* Description cell with tooltip behavior */
+/* Common cell styles for description and note cells */
+.bet-table .description-cell,
+.bet-table .note-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    position: relative;
+}
+
 .bet-table .description-cell {
     max-width: 300px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    position: relative;
 }
 
-/* Note cell with tooltip behavior */
 .bet-table .note-cell {
     max-width: 180px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    position: relative;
 }
 
-/* Remove the CSS-based tooltip approach since we're using JS */
-.bet-table .description-cell:hover::after,
-.bet-table .note-cell:hover::after {
-    display: none;
-}
-
-/* JavaScript-based tooltip styling */
-.cell-tooltip {
-    position: absolute;
-    z-index: 1000;
-    background-color: white;
-    padding: 10px 15px;
-    border-radius: 4px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    border: 1px solid #ddd;
-    max-width: 300px;
-    max-height: 200px;
-    overflow-y: auto;
-    white-space: normal;
-    word-wrap: break-word;
-    line-height: 1.4;
-    color: #333;
-    font-size: 14px;
-}
-
-.bet-table .outcome-cell {
+/* Common status color styles */
+.bet-table .outcome-cell,
+.bet-table .profit-loss,
+.bet-table .ev-cell {
     font-weight: 600;
 }
 
-.bet-table .outcome-cell.win {
+.bet-table .outcome-cell.win,
+.bet-table .profit-loss.positive,
+.bet-table .ev-cell.positive {
     color: #27ae60;
 }
 
-.bet-table .outcome-cell.loss {
+.bet-table .outcome-cell.loss,
+.bet-table .profit-loss.negative,
+.bet-table .ev-cell.negative {
     color: #e74c3c;
 }
 
-.bet-table .outcome-cell.pending {
+.bet-table .outcome-cell.pending,
+.bet-table .profit-loss.pending {
     color: #f39c12;
-}
-
-.bet-table .profit-loss {
-    font-weight: 600;
-}
-
-.bet-table .profit-loss.positive {
-    color: #27ae60;
-}
-
-.bet-table .profit-loss.negative {
-    color: #e74c3c;
 }
 
 .bet-table .profit-loss.pending {
-    color: #f39c12;
     font-style: italic;
 }
 
