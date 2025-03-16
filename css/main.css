@@ -79,4 +79,34 @@
 .toggle-btn.active {
   background-color: #3182ce;
   color: white;
+}
+
+/* Side-by-side charts */
+.charts-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.chart-half {
+  flex: 1;
+  min-width: 0; /* Prevent flex items from overflowing */
+  margin-bottom: 0;
+}
+
+/* Make sure charts are responsive in the side-by-side layout */
+.chart-half .chart-container {
+  height: 350px;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  .charts-row {
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .chart-half {
+    width: 100%;
+  }
 } 

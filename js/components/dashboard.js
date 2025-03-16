@@ -368,6 +368,7 @@ function applyDashboardFilters() {
   // Prepare chart data
   const chartData = prepareCumulativeProfitData(filteredBets);
   const monthlyPerformanceData = calculateMonthlyPerformance(filteredBets);
+  const weeklyPerformanceData = calculateWeeklyPerformance(filteredBets);
   const evProfitData = prepareEVProfitData(filteredBets);
 
   // Update dashboard content
@@ -417,40 +418,52 @@ function applyDashboardFilters() {
 }
         </section>
         
-        <!-- EV vs Profit Chart -->
-        <section class="dashboard-section">
-            <h3>Expected Value vs Actual Profit</h3>
-            ${evProfitData.data.length > 0
+        <!-- Side-by-side charts -->
+        <div class="charts-row">
+            <!-- EV vs Profit Chart -->
+            <section class="dashboard-section chart-half">
+                <h3>Expected Value vs Actual Profit</h3>
+                ${evProfitData.data.length > 0
     ? `<div class="chart-controls">
-                    <div class="toggle-container">
-                        <span>View:</span>
-                        <div class="toggle-buttons">
-                            <button id="absolute-view" class="toggle-btn active">Absolute (€)</button>
-                            <button id="normalized-view" class="toggle-btn">Per € Staked</button>
+                        <div class="toggle-container">
+                            <span>View:</span>
+                            <div class="toggle-buttons">
+                                <button id="absolute-view" class="toggle-btn active">Absolute (€)</button>
+                                <button id="normalized-view" class="toggle-btn">Per € Staked</button>
+                            </div>
                         </div>
                     </div>
+                    <div class="chart-container">
+                        <canvas id="evProfitChart"></canvas>
+                    </div>`
+    : `<div class="no-data-message">
+                        <p>Not enough completed bets to display EV vs Profit chart.</p>
+                    </div>`
+}
+            </section>
+            
+            <!-- Monthly Performance -->
+            <section class="dashboard-section chart-half">
+                <h3>Performance Over Time</h3>
+                ${monthlyPerformanceData.length > 0
+    ? `<div class="chart-controls">
+            <div class="toggle-container">
+                <span>View:</span>
+                <div class="toggle-buttons">
+                    <button id="monthly-view" class="toggle-btn active">Monthly</button>
+                    <button id="weekly-view" class="toggle-btn">Weekly</button>
                 </div>
-                <div class="chart-container">
-                    <canvas id="evProfitChart"></canvas>
-                </div>`
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="performanceChart"></canvas>
+        </div>`
     : `<div class="no-data-message">
-                    <p>Not enough completed bets to display EV vs Profit chart.</p>
-                </div>`
+            <p>Not enough data to display performance chart.</p>
+        </div>`
 }
-        </section>
-        
-        <!-- Monthly Performance -->
-        <section class="dashboard-section">
-            <h3>Monthly Performance</h3>
-            ${monthlyPerformanceData.length > 0
-    ? `<div class="chart-container">
-                    <canvas id="monthlyPerformanceChart"></canvas>
-                </div>`
-    : `<div class="no-data-message">
-                    <p>Not enough data to display monthly performance.</p>
-                </div>`
-}
-        </section>
+            </section>
+        </div>
                 
         <!-- Website Performance -->
         <section class="dashboard-section">
@@ -535,7 +548,20 @@ function applyDashboardFilters() {
   }
 
   if (monthlyPerformanceData.length > 0) {
-    initializeMonthlyPerformanceChart(monthlyPerformanceData);
+    initializePerformanceChart(monthlyPerformanceData, 'monthly'); // Initialize with monthly view by default
+
+    // Add event listeners for toggle buttons
+    document.getElementById('monthly-view').addEventListener('click', () => {
+      document.getElementById('monthly-view').classList.add('active');
+      document.getElementById('weekly-view').classList.remove('active');
+      initializePerformanceChart(monthlyPerformanceData, 'monthly');
+    });
+
+    document.getElementById('weekly-view').addEventListener('click', () => {
+      document.getElementById('weekly-view').classList.add('active');
+      document.getElementById('monthly-view').classList.remove('active');
+      initializePerformanceChart(weeklyPerformanceData, 'weekly');
+    });
   }
 
   if (evProfitData.data.length > 0) {
@@ -807,7 +833,9 @@ function calculateMonthlyPerformance(bets) {
         wins: 0,
         losses: 0,
         amountBet: 0,
-        profit: 0
+        profit: 0,
+        // Store the date to help with sorting
+        date: new Date(date.getFullYear(), date.getMonth(), 1)
       };
     }
 
@@ -831,6 +859,7 @@ function calculateMonthlyPerformance(bets) {
   return Object.entries(monthlyData)
     .map(([month, data]) => ({
       month,
+      period: month, // Add period property to match weekly data format
       ...data,
       winRate: data.totalBets > 0 ? ((data.wins / data.totalBets) * 100).toFixed(1) : 0,
       roi: data.amountBet > 0 ? ((data.profit / data.amountBet) * 100).toFixed(1) : 0
@@ -851,25 +880,92 @@ function calculateMonthlyPerformance(bets) {
     });
 }
 
-// Function to initialize monthly performance chart
-function initializeMonthlyPerformanceChart(monthlyPerformanceData) {
-  const ctx = document.getElementById('monthlyPerformanceChart').getContext('2d');
+// Function to calculate weekly performance
+function calculateWeeklyPerformance(bets) {
+  // Skip if no bets
+  if (bets.length === 0) {
+    return [];
+  }
+
+  // Filter out pending bets
+  const completedBets = bets.filter((bet) => bet.outcome !== 'pending');
+
+  // Group bets by week
+  const weeklyData = {};
+
+  completedBets.forEach((bet) => {
+    const date = new Date(bet.date);
+
+    // Get the week number and year
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+
+    // Format as "Week X, YYYY"
+    const weekYear = `Week ${weekNumber}, ${date.getFullYear()}`;
+
+    if (!weeklyData[weekYear]) {
+      weeklyData[weekYear] = {
+        totalBets: 0,
+        wins: 0,
+        losses: 0,
+        amountBet: 0,
+        profit: 0,
+        // Store the date to help with sorting
+        date: new Date(date)
+      };
+    }
+
+    const data = weeklyData[weekYear];
+    data.totalBets++;
+    data.amountBet += parseFloat(bet.amount);
+
+    if (bet.outcome === 'win') {
+      data.wins++;
+      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+      const stake = parseFloat(bet.amount);
+      const totalPayout = stake * odds;
+      data.profit += totalPayout - stake; // Subtract stake to get actual profit
+    } else if (bet.outcome === 'loss') {
+      data.losses++;
+      data.profit -= parseFloat(bet.amount);
+    }
+  });
+
+  // Convert to array and sort by date (most recent first)
+  return Object.entries(weeklyData)
+    .map(([week, data]) => ({
+      period: week,
+      ...data,
+      winRate: data.totalBets > 0 ? ((data.wins / data.totalBets) * 100).toFixed(1) : 0,
+      roi: data.amountBet > 0 ? ((data.profit / data.amountBet) * 100).toFixed(1) : 0
+    }))
+    .sort((a, b) => b.date - a.date); // Sort by date, most recent first
+}
+
+// Function to initialize the performance chart (monthly or weekly)
+function initializePerformanceChart(performanceData, viewType) {
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+
+  // Clear existing chart if it exists
+  if (window.performanceChart && typeof window.performanceChart.destroy === 'function') {
+    window.performanceChart.destroy();
+  }
 
   // Prepare data for chart
-  const months = monthlyPerformanceData.map((data) => data.month).reverse();
-  const profits = monthlyPerformanceData.map((data) => data.profit.toFixed(2)).reverse();
+  const periods = performanceData.map((data) => data.period || data.month).reverse();
+  const profits = performanceData.map((data) => data.profit.toFixed(2)).reverse();
 
   // Determine colors based on profit values
   const barColors = profits.map((profit) => (parseFloat(profit) >= 0 ? 'rgba(46, 204, 113, 0.7)' : 'rgba(231, 76, 60, 0.7)'));
-
   const barBorderColors = profits.map((profit) => (parseFloat(profit) >= 0 ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)'));
 
-  new Chart(ctx, {
+  window.performanceChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: months,
+      labels: periods,
       datasets: [{
-        label: 'Monthly Profit/Loss (€)',
+        label: viewType === 'monthly' ? 'Monthly Profit/Loss (€)' : 'Weekly Profit/Loss (€)',
         data: profits,
         backgroundColor: barColors,
         borderColor: barBorderColors,
@@ -894,13 +990,13 @@ function initializeMonthlyPerformanceChart(monthlyPerformanceData) {
             label(context) {
               const value = parseFloat(context.raw);
               const sign = value >= 0 ? '+' : '';
-              const monthData = monthlyPerformanceData[monthlyPerformanceData.length - 1 - context.dataIndex];
+              const periodData = performanceData[performanceData.length - 1 - context.dataIndex];
 
               return [
                 `Profit/Loss: ${sign}€${value.toFixed(2)}`,
-                `Bets: ${monthData.totalBets} (${monthData.wins}W-${monthData.losses}L)`,
-                `Win Rate: ${monthData.winRate}%`,
-                `ROI: ${monthData.roi}%`
+                `Bets: ${periodData.totalBets} (${periodData.wins}W-${periodData.losses}L)`,
+                `Win Rate: ${periodData.winRate}%`,
+                `ROI: ${periodData.roi}%`
               ];
             }
           }
@@ -913,10 +1009,17 @@ function initializeMonthlyPerformanceChart(monthlyPerformanceData) {
           },
           title: {
             display: true,
-            text: 'Month',
+            text: viewType === 'monthly' ? 'Month' : 'Week',
             font: {
               size: 14,
               weight: 'bold'
+            }
+          },
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+            font: {
+              size: 12
             }
           }
         },
