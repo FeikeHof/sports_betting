@@ -85,7 +85,7 @@
 
 /* Actions cell styling */
 .bet-table .actions-cell {
-    text-align: left;
+    text-align: right;
     white-space: nowrap;
     width: 105px;
     padding: 8px 5px;
