@@ -21,6 +21,7 @@
     padding: 8px 10px;
     border-bottom: 1px solid #f1f1f1;
     text-align: left;
+    font-size: 14px;
 }
 
 .bet-table th {
@@ -84,9 +85,10 @@
 
 /* Actions cell styling */
 .bet-table .actions-cell {
-    text-align: center;
+    text-align: left;
     white-space: nowrap;
-    width: 90px;
+    width: 105px;
+    padding: 8px 5px;
 }
 
 .bet-table tfoot {
@@ -288,7 +290,7 @@
 .bet-table td:nth-child(9), /* EV */
 .bet-table .profit-loss,
 .bet-table .ev-cell {
-    text-align: right;
+    text-align: left;
     font-family: Inter, sans-serif;
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
@@ -379,6 +381,28 @@
     & .ev-cell { width: 90px; }
     & .note-cell { width: 80px; }
     & .actions-cell { width: 50px; }
+}
+
+/* Updated column widths for bet history table */
+.bet-table:not(.tips-container .bet-table) {
+    table-layout: fixed;
+}
+
+.bet-table:not(.tips-container .bet-table) th:nth-child(1) { width: 70px; } /* Date */
+.bet-table:not(.tips-container .bet-table) th:nth-child(2) { width: 50px; } /* Website */
+.bet-table:not(.tips-container .bet-table) th:nth-child(3) { width: 425px; } /* Description - adjusted width */
+.bet-table:not(.tips-container .bet-table) th:nth-child(4) { width: 50px; } /* Odds */
+.bet-table:not(.tips-container .bet-table) th:nth-child(5) { width: 50px; } /* Boosted */
+.bet-table:not(.tips-container .bet-table) th:nth-child(6) { width: 50px; } /* Amount */
+.bet-table:not(.tips-container .bet-table) th:nth-child(7) { width: 60px; } /* Outcome */
+.bet-table:not(.tips-container .bet-table) th:nth-child(8) { width: 50px; } /* P/L */
+.bet-table:not(.tips-container .bet-table) th:nth-child(9) { width: 50px; } /* EV */
+.bet-table:not(.tips-container .bet-table) th:nth-child(10) { width: 90px; } /* Note */
+.bet-table:not(.tips-container .bet-table) th:nth-child(11) { width: 95px; text-align: left; } /* Actions - changed to left alignment */
+
+/* Ensure buttons in actions cell don't overflow */
+.bet-table .actions-cell button {
+    margin: 0 2px; /* Add small margin between buttons */
 }
 
 /* Add styles for the date filter component */
