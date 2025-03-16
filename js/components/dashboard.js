@@ -368,6 +368,7 @@ function applyDashboardFilters() {
   // Prepare chart data
   const chartData = prepareCumulativeProfitData(filteredBets);
   const monthlyPerformanceData = calculateMonthlyPerformance(filteredBets);
+  const evProfitData = prepareEVProfitData(filteredBets);
 
   // Update dashboard content
   const dashboardContent = document.getElementById('dashboard-content');
@@ -412,6 +413,28 @@ function applyDashboardFilters() {
                 </div>`
     : `<div class="no-data-message">
                     <p>Not enough completed bets to display profit chart.</p>
+                </div>`
+}
+        </section>
+        
+        <!-- EV vs Profit Chart -->
+        <section class="dashboard-section">
+            <h3>Expected Value vs Actual Profit</h3>
+            ${evProfitData.data.length > 0
+    ? `<div class="chart-controls">
+                    <div class="toggle-container">
+                        <span>View:</span>
+                        <div class="toggle-buttons">
+                            <button id="absolute-view" class="toggle-btn active">Absolute (€)</button>
+                            <button id="normalized-view" class="toggle-btn">Per € Staked</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="evProfitChart"></canvas>
+                </div>`
+    : `<div class="no-data-message">
+                    <p>Not enough completed bets to display EV vs Profit chart.</p>
                 </div>`
 }
         </section>
@@ -513,6 +536,23 @@ function applyDashboardFilters() {
 
   if (monthlyPerformanceData.length > 0) {
     initializeMonthlyPerformanceChart(monthlyPerformanceData);
+  }
+
+  if (evProfitData.data.length > 0) {
+    initializeEVProfitChart(evProfitData, false); // Initialize with absolute values by default
+
+    // Add event listeners for toggle buttons
+    document.getElementById('absolute-view').addEventListener('click', () => {
+      document.getElementById('absolute-view').classList.add('active');
+      document.getElementById('normalized-view').classList.remove('active');
+      initializeEVProfitChart(evProfitData, false);
+    });
+
+    document.getElementById('normalized-view').addEventListener('click', () => {
+      document.getElementById('normalized-view').classList.add('active');
+      document.getElementById('absolute-view').classList.remove('active');
+      initializeEVProfitChart(evProfitData, true);
+    });
   }
 }
 
@@ -896,6 +936,232 @@ function initializeMonthlyPerformanceChart(monthlyPerformanceData) {
             callback(value) {
               const sign = value >= 0 ? '+' : '';
               return `${sign}€${value}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Function to prepare data for EV vs Profit scatter plot
+function prepareEVProfitData(bets) {
+  // Filter out pending bets
+  const completedBets = bets.filter((bet) => bet.outcome !== 'pending');
+
+  if (completedBets.length < 3) {
+    return { data: [] };
+  }
+
+  // Prepare data for scatter plot
+  const data = completedBets.map((bet) => {
+    // Calculate expected value
+    const baseOdds = parseFloat(bet.odds);
+    const boostedOdds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : baseOdds;
+    const amount = parseFloat(bet.amount);
+    const expectedValue = (0.95 / baseOdds) * boostedOdds * amount - amount;
+    const expectedValuePerEuro = (0.95 / baseOdds) * boostedOdds - 1;
+
+    // Calculate actual profit/loss
+    let actualProfit = 0;
+    if (bet.outcome === 'win') {
+      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+      const stake = parseFloat(bet.amount);
+      const totalPayout = stake * odds;
+      actualProfit = totalPayout - stake;
+    } else if (bet.outcome === 'loss') {
+      actualProfit = -parseFloat(bet.amount);
+    }
+
+    // Calculate profit per euro staked
+    const profitPerEuro = actualProfit / amount;
+
+    return {
+      x: expectedValue,
+      y: actualProfit,
+      xNormalized: expectedValuePerEuro,
+      yNormalized: profitPerEuro,
+      website: bet.website,
+      description: bet.description,
+      date: new Date(bet.date).toLocaleDateString(),
+      outcome: bet.outcome,
+      stake: amount
+    };
+  });
+
+  return { data };
+}
+
+// Function to initialize the EV vs Profit chart
+function initializeEVProfitChart(evProfitData, normalized = false) {
+  const ctx = document.getElementById('evProfitChart').getContext('2d');
+
+  // Clear existing chart if it exists
+  if (window.evProfitChart && typeof window.evProfitChart.destroy === 'function') {
+    window.evProfitChart.destroy();
+  }
+
+  // Calculate trend line data
+  const points = evProfitData.data;
+  const n = points.length;
+
+  // Prepare data based on view mode (absolute or normalized)
+  const chartData = points.map((point) => ({
+    x: normalized ? point.xNormalized : point.x,
+    y: normalized ? point.yNormalized : point.y,
+    website: point.website,
+    description: point.description,
+    date: point.date,
+    outcome: point.outcome,
+    stake: point.stake,
+    xOriginal: point.x,
+    yOriginal: point.y,
+    xNormalized: point.xNormalized,
+    yNormalized: point.yNormalized
+  }));
+
+  // Calculate the sum of x, y, x^2, and xy
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
+
+  chartData.forEach((point) => {
+    sumX += point.x;
+    sumY += point.y;
+    sumXY += point.x * point.y;
+    sumXX += point.x * point.x;
+  });
+
+  // Calculate slope (m) and y-intercept (b) for the line y = mx + b
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const yIntercept = (sumY - slope * sumX) / n;
+
+  // Find min and max x values to draw the trend line
+  const minX = Math.min(...chartData.map((p) => p.x));
+  const maxX = Math.max(...chartData.map((p) => p.x));
+
+  // Create trend line points
+  const trendLinePoints = [
+    { x: minX, y: slope * minX + yIntercept },
+    { x: maxX, y: slope * maxX + yIntercept }
+  ];
+
+  // Split data into wins and losses for proper legend
+  const winData = chartData.filter((point) => point.outcome === 'win');
+  const lossData = chartData.filter((point) => point.outcome === 'loss');
+
+  // Create the chart
+  window.evProfitChart = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Wins',
+          data: winData,
+          backgroundColor: 'rgba(46, 204, 113, 0.7)',
+          borderColor: 'rgba(46, 204, 113, 1)',
+          borderWidth: 1,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        },
+        {
+          label: 'Losses',
+          data: lossData,
+          backgroundColor: 'rgba(231, 76, 60, 0.7)',
+          borderColor: 'rgba(231, 76, 60, 1)',
+          borderWidth: 1,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        },
+        {
+          label: 'Trend Line',
+          data: trendLinePoints,
+          type: 'line',
+          borderColor: 'rgba(52, 152, 219, 1)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false,
+          tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const point = context.raw;
+              if (!point.website) {
+                return `Trend Line: (${point.x.toFixed(2)}, ${point.y.toFixed(2)})`;
+              }
+
+              const evLabel = normalized
+                ? `EV per € Staked: ${point.xNormalized.toFixed(2)}`
+                : `Expected Value: €${point.xOriginal.toFixed(2)}`;
+
+              const profitLabel = normalized
+                ? `Profit per € Staked: ${point.yNormalized.toFixed(2)}`
+                : `Actual Profit: €${point.yOriginal.toFixed(2)}`;
+
+              return [
+                `Website: ${point.website}`,
+                `Date: ${point.date}`,
+                `Description: ${point.description}`,
+                `Stake: €${point.stake.toFixed(2)}`,
+                evLabel,
+                profitLabel,
+                `Outcome: ${point.outcome === 'win' ? 'Win' : 'Loss'}`
+              ];
+            }
+          }
+        },
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 15
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: normalized ? 'Expected Value per € Staked' : 'Expected Value (€)',
+            font: {
+              size: 14,
+              weight: 'bold'
+            }
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            callback(value) {
+              return normalized ? value.toFixed(2) : `€${value.toFixed(2)}`;
+            }
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: normalized ? 'Actual Profit per € Staked' : 'Actual Profit (€)',
+            font: {
+              size: 14,
+              weight: 'bold'
+            }
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            callback(value) {
+              return normalized ? value.toFixed(2) : `€${value.toFixed(2)}`;
             }
           }
         }
