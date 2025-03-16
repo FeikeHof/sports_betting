@@ -161,6 +161,28 @@ function applyFilters() {
     return true;
   });
 
+  // Apply sorting: by date (newest first) and then pending bets first
+  filteredBets.sort((a, b) => {
+    // First compare by date (newest first)
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateB - dateA; // Newest first
+    }
+
+    // If dates are equal, prioritize pending bets
+    if (a.outcome === 'pending' && b.outcome !== 'pending') {
+      return -1;
+    }
+    if (a.outcome !== 'pending' && b.outcome === 'pending') {
+      return 1;
+    }
+
+    // If both are pending or both are not pending, maintain original order
+    return 0;
+  });
+
   // Calculate statistics based on filtered bets
   const totalBets = filteredBets.length;
   const totalAmount = filteredBets.reduce((total, bet) => total + parseFloat(bet.amount), 0);
@@ -438,8 +460,26 @@ function sortBets(sortBy, direction) {
 
     switch (sortBy) {
       case 'date':
-        valueA = new Date(a.date);
-        valueB = new Date(b.date);
+        // First compare by date
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+
+        // If dates are equal, prioritize pending bets
+        if (dateA.getTime() === dateB.getTime()) {
+          // Pending bets come first, then wins and losses
+          if (a.outcome === 'pending' && b.outcome !== 'pending') {
+            return -1;
+          }
+          if (a.outcome !== 'pending' && b.outcome === 'pending') {
+            return 1;
+          }
+          // If both are pending or both are not pending, maintain original order
+          return 0;
+        }
+
+        // Otherwise sort by date
+        valueA = dateA;
+        valueB = dateB;
         break;
       case 'odds':
         valueA = parseFloat(a.odds);
@@ -804,6 +844,28 @@ async function loadBetHistory() {
     // Store all bets for filtering
     filteredBets = [...userBets];
     currentPage = 1;
+
+    // Apply initial sorting: by date (newest first) and then pending bets first
+    filteredBets.sort((a, b) => {
+      // First compare by date (newest first)
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateB - dateA; // Newest first
+      }
+
+      // If dates are equal, prioritize pending bets
+      if (a.outcome === 'pending' && b.outcome !== 'pending') {
+        return -1;
+      }
+      if (a.outcome !== 'pending' && b.outcome === 'pending') {
+        return 1;
+      }
+
+      // If both are pending or both are not pending, maintain original order
+      return 0;
+    });
 
     // Render the initial page
     renderCurrentPage();
