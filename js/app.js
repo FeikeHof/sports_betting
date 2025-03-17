@@ -7,8 +7,10 @@ import {
 import { loadDashboard, loadUserData, applyDashboardFilters } from './components/dashboard.js';
 import { loadSuperBoostStrategy } from './components/strategy.js';
 import { loadTips, shareBetAsTip, confirmDeleteTip } from './components/tips.js';
-import { handleNavigation } from './views/router.js';
+import handleNavigation from './views/router.js';
 import { showNotification } from './utils/utils.js';
+// Using global config instead of import
+const config = window.config;
 
 // Define the Google Sign-In callback globally BEFORE any event listeners
 // This ensures it's available immediately when the Google API loads
@@ -63,9 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check if user was previously logged in (page refresh)
   checkLoginStatus().then((isLoggedIn) => {
     // If user is logged in, we don't need to show Google Sign-In
-    if (isLoggedIn && typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    if (isLoggedIn && window.google && window.google.accounts && window.google.accounts.id) {
       // Cancel any pending prompts
-      google.accounts.id.cancel();
+      window.google.accounts.id.cancel();
     }
   }).catch((error) => {
     console.error('Error checking login status:', error);
@@ -94,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wait for Google API to be loaded
   window.googleAPILoaded = function () {
     try {
-      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-        google.accounts.id.initialize({
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.initialize({
           client_id: config.googleClientId,
           callback: window.handleGoogleSignIn,
           auto_select: false,
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Render the button explicitly
           const buttonContainer = document.querySelector('.g_id_signin');
           if (buttonContainer) {
-            google.accounts.id.renderButton(
+            window.google.accounts.id.renderButton(
               buttonContainer,
               {
                 theme: 'outline', size: 'large', type: 'standard', text: 'signin_with', shape: 'rectangular'
@@ -120,8 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Google Sign-In button container not found');
           }
         }
-      } else {
-        console.error('Google API is not loaded or missing required objects');
       }
     } catch (error) {
       console.error('Error initializing Google Sign-In:', error);

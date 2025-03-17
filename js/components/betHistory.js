@@ -1,7 +1,7 @@
 import { fetchBets, deleteBet, updateBetInSupabase } from '../api/api.js';
-import { supabaseClient } from '../api/supabase.js';
+import supabaseClient from '../api/supabase.js';
 import { showNotification } from '../utils/utils.js';
-import { loadNewBetForm } from './newBet.js';
+import handleNavigation from '../views/router.js';
 
 // Add pagination variables
 let currentPage = 1;
@@ -576,8 +576,9 @@ async function editBet(id) {
       return;
     }
 
-    // Load the new bet form
-    await loadNewBetForm(betToEdit); // Pass the bet to edit
+    // Load the new bet form using dynamic import
+    const newBetModule = await import('./newBet.js');
+    await newBetModule.loadNewBetForm(betToEdit); // Pass the bet to edit
   } catch (error) {
     console.error('Error editing bet:', error);
     showNotification('Error loading bet for editing. Please try again.', 'error');

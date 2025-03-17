@@ -1,9 +1,75 @@
-import { supabaseClient } from '../api/supabase.js';
+import supabaseClient from '../api/supabase.js';
 import { loadUserData } from '../components/dashboard.js';
 import { showNotification } from '../utils/utils.js';
 
 // User authentication state
 let userProfile = null;
+
+// Helper function to parse JWT token
+function parseJwt(token) {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join(''));
+
+  return JSON.parse(jsonPayload);
+}
+
+// Helper function to update UI for logged in user
+function updateUIforLoggedInUser(profile) {
+  const loginContainer = document.getElementById('login-container');
+  const userInfoContainer = document.getElementById('user-info');
+
+  if (loginContainer) {
+    loginContainer.style.display = 'none';
+  } else {
+    console.error('Login container element not found in checkLoginStatus!');
+  }
+
+  if (userInfoContainer) {
+    userInfoContainer.style.display = 'block';
+  } else {
+    console.error('User info container element not found in checkLoginStatus!');
+  }
+
+  // Set user information in the profile section
+  const userNameEl = document.getElementById('user-name');
+  const userEmailEl = document.getElementById('user-email');
+  const userPictureEl = document.getElementById('user-picture');
+
+  if (userNameEl) {
+    userNameEl.textContent = profile.name;
+  } else {
+    console.error('User name element not found!');
+  }
+
+  if (userEmailEl) {
+    userEmailEl.textContent = profile.email;
+  } else {
+    console.error('User email element not found!');
+  }
+
+  if (userPictureEl) {
+    userPictureEl.src = profile.picture;
+  } else {
+    console.error('User picture element not found!');
+  }
+}
+
+// Helper function to hide Google Sign-In elements
+function hideGoogleSignIn() {
+  // Hide any Google Sign-In elements that might be visible
+  const gSignInElements = document.querySelectorAll('.g_id_signin');
+  if (gSignInElements.length > 0) {
+    gSignInElements.forEach((element) => {
+      element.style.display = 'none';
+    });
+  }
+
+  // Try to disable Google Sign-In prompt as well
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    window.google.accounts.id.cancel();
+  }
+}
 
 // Function to handle Google Sign-In response
 async function handleCredentialResponse(response) {
@@ -50,15 +116,6 @@ async function handleCredentialResponse(response) {
   }
 }
 
-// Helper function to parse JWT token
-function parseJwt(token) {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join(''));
-
-  return JSON.parse(jsonPayload);
-}
-
 // Function to sign out
 async function signOut() {
   try {
@@ -92,8 +149,8 @@ async function signOut() {
     showNotification('Successfully signed out', 'success');
 
     // Revoke Google authentication if Google API is available
-    if (typeof google !== 'undefined' && google.accounts) {
-      google.accounts.id.disableAutoSelect();
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.disableAutoSelect();
     }
 
     // Force reload of the page to ensure clean state
@@ -164,63 +221,6 @@ async function checkLoginStatus() {
     // Clear any saved profile in case of errors
     sessionStorage.removeItem('userProfile');
     return false;
-  }
-}
-
-// Helper function to update UI for logged in user
-function updateUIforLoggedInUser(profile) {
-  const loginContainer = document.getElementById('login-container');
-  const userInfoContainer = document.getElementById('user-info');
-
-  if (loginContainer) {
-    loginContainer.style.display = 'none';
-  } else {
-    console.error('Login container element not found in checkLoginStatus!');
-  }
-
-  if (userInfoContainer) {
-    userInfoContainer.style.display = 'block';
-  } else {
-    console.error('User info container element not found in checkLoginStatus!');
-  }
-
-  // Set user information in the profile section
-  const userNameEl = document.getElementById('user-name');
-  const userEmailEl = document.getElementById('user-email');
-  const userPictureEl = document.getElementById('user-picture');
-
-  if (userNameEl) {
-    userNameEl.textContent = profile.name;
-  } else {
-    console.error('User name element not found!');
-  }
-
-  if (userEmailEl) {
-    userEmailEl.textContent = profile.email;
-  } else {
-    console.error('User email element not found!');
-  }
-
-  if (userPictureEl) {
-    userPictureEl.src = profile.picture;
-  } else {
-    console.error('User picture element not found!');
-  }
-}
-
-// Helper function to hide Google Sign-In elements
-function hideGoogleSignIn() {
-  // Hide any Google Sign-In elements that might be visible
-  const gSignInElements = document.querySelectorAll('.g_id_signin');
-  if (gSignInElements.length > 0) {
-    gSignInElements.forEach((element) => {
-      element.style.display = 'none';
-    });
-  }
-
-  // Try to disable Google Sign-In prompt as well
-  if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-    google.accounts.id.cancel();
   }
 }
 

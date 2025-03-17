@@ -1,7 +1,7 @@
 import { fetchBets, updateBetInSupabase } from '../api/api.js';
-import { supabaseClient } from '../api/supabase.js';
+import supabaseClient from '../api/supabase.js';
 import { showNotification, validateBetData } from '../utils/utils.js';
-import { handleNavigation } from '../views/router.js';
+import handleNavigation from '../views/router.js';
 
 // Function to get unique websites from existing bets
 async function getUniqueWebsites() {

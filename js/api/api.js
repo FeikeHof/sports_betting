@@ -1,4 +1,4 @@
-import { supabaseClient } from './supabase.js';
+import supabaseClient from './supabase.js';
 
 // Function to fetch bets from Supabase
 async function fetchBets(userId) {
@@ -41,7 +41,7 @@ async function updateBetInSupabase(id, betData) {
     const { error } = await supabaseClient
       .from('bets')
       .update(formattedData)
-      .eq('id', parseInt(id));
+      .eq('id', parseInt(id, 10));
 
     if (error) {
       console.error('Error updating bet:', error);

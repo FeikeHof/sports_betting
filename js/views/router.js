@@ -1,9 +1,27 @@
-import { supabaseClient } from '../api/supabase.js';
-import { loadNewBetForm } from '../components/newBet.js';
-import { loadBetHistory } from '../components/betHistory.js';
+import supabaseClient from '../api/supabase.js';
+// import { loadNewBetForm } from '../components/newBet.js';
+// import { loadBetHistory } from '../components/betHistory.js';
 import { loadDashboard, loadUserData } from '../components/dashboard.js';
 import { loadSuperBoostStrategy } from '../components/strategy.js';
 import { loadTips } from '../components/tips.js';
+
+// Function to update the active navigation link
+function updateActiveNavLink(targetId) {
+  // Default to home if no target specified
+  const navTarget = !targetId || targetId === '' ? 'home' : targetId;
+
+  // Remove active class from all navigation links
+  const navLinks = document.querySelectorAll('.header-nav ul li a');
+  navLinks.forEach((link) => {
+    link.classList.remove('active');
+  });
+
+  // Add active class to current page link
+  const currentLink = document.querySelector(`.header-nav ul li a[href="#${navTarget}"]`);
+  if (currentLink) {
+    currentLink.classList.add('active');
+  }
+}
 
 // Function to handle navigation
 async function handleNavigation(targetId) {
@@ -13,12 +31,10 @@ async function handleNavigation(targetId) {
   updateActiveNavLink(targetId);
 
   // If no specific target or 'home' is provided, default to home
-  if (!targetId || targetId === '' || targetId === 'home') {
-    targetId = 'home';
-  }
+  const navTarget = !targetId || targetId === '' || targetId === 'home' ? 'home' : targetId;
 
   // Check authentication for protected routes
-  if (['new-bet', 'bet-history', 'dashboard', 'tips'].includes(targetId)) {
+  if (['new-bet', 'bet-history', 'dashboard', 'tips'].includes(navTarget)) {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       contentSection.innerHTML = `
@@ -33,7 +49,7 @@ async function handleNavigation(targetId) {
   contentSection.innerHTML = '';
 
   // Handle navigation based on targetId
-  switch (targetId) {
+  switch (navTarget) {
     case 'home':
       if (sessionStorage.getItem('userProfile')) {
         loadUserData();
@@ -53,10 +69,16 @@ async function handleNavigation(targetId) {
       }
       break;
     case 'new-bet':
-      loadNewBetForm();
+      // Use dynamic import to avoid circular dependencies
+      import('../components/newBet.js').then(module => {
+        module.loadNewBetForm();
+      });
       break;
     case 'bet-history':
-      loadBetHistory();
+      // Use dynamic import to avoid circular dependencies
+      import('../components/betHistory.js').then(module => {
+        module.loadBetHistory();
+      });
       break;
     case 'dashboard':
       loadDashboard();
@@ -106,25 +128,5 @@ async function handleNavigation(targetId) {
   }
 }
 
-// Function to update the active navigation link
-function updateActiveNavLink(targetId) {
-  // Default to home if no target specified
-  if (!targetId || targetId === '') {
-    targetId = 'home';
-  }
-
-  // Remove active class from all navigation links
-  const navLinks = document.querySelectorAll('.header-nav ul li a');
-  navLinks.forEach((link) => {
-    link.classList.remove('active');
-  });
-
-  // Add active class to current page link
-  const currentLink = document.querySelector(`.header-nav ul li a[href="#${targetId}"]`);
-  if (currentLink) {
-    currentLink.classList.add('active');
-  }
-}
-
 // Export the handleNavigation function
-export { handleNavigation };
+export default handleNavigation;

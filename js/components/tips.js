@@ -1,4 +1,4 @@
-import { supabaseClient } from '../api/supabase.js';
+import supabaseClient from '../api/supabase.js';
 import { showNotification } from '../utils/utils.js';
 
 // Function declarations

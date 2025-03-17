@@ -1,7 +1,5 @@
 import { fetchBets } from '../api/api.js';
-import { supabaseClient } from '../api/supabase.js';
-import { showNotification } from '../utils/utils.js';
-import { handleNavigation } from '../views/router.js';
+import supabaseClient from '../api/supabase.js';
 
 // Add date filter variables
 let startDateFilter = null;
