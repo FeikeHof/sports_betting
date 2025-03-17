@@ -28,83 +28,83 @@ async function loadNewBetForm(betToEdit = null) {
   const submitButtonText = betToEdit ? 'Update Bet' : 'Save Bet';
 
   contentSection.innerHTML = `
-        <div class="form-container">
+        <div class="form-container compact-form">
             <h2>${formTitle}</h2>
             <form id="new-bet-form" class="bet-form" ${betToEdit ? `data-edit-id="${betToEdit.id}"` : ''}>
                 <div class="form-section">
-                    <div class="form-group">
-                        <label for="website">Betting Website</label>
-                        <div class="website-input-group">
-                            <select id="website-select" onchange="window.app.handleWebsiteSelect(this.value)">
-                                <option value="">-- Select Website --</option>
-                                ${websites.map((site) => `
-                                    <option value="${site}" ${betToEdit && betToEdit.website === site ? 'selected' : ''}>${site}</option>
-                                `).join('')}
-                                <option value="new">+ Add New Website</option>
-                            </select>
-                            <input type="text" id="website" name="website" required 
-                                placeholder="e.g., DraftKings, FanDuel" 
-                                style="display: ${betToEdit && !websites.includes(betToEdit.website) ? 'block' : 'none'};"
-                                value="${betToEdit ? betToEdit.website : ''}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="website">Website</label>
+                            <div class="website-input-group">
+                                <select id="website-select" onchange="window.app.handleWebsiteSelect(this.value)">
+                                    <option value="">-- Select Website --</option>
+                                    ${websites.map((site) => `
+                                        <option value="${site}" ${betToEdit && betToEdit.website === site ? 'selected' : ''}>${site}</option>
+                                    `).join('')}
+                                    <option value="new">+ Add New</option>
+                                </select>
+                                <input type="text" id="website" name="website" required 
+                                    placeholder="e.g., DraftKings" 
+                                    style="display: ${betToEdit && !websites.includes(betToEdit.website) ? 'block' : 'none'};"
+                                    value="${betToEdit ? betToEdit.website : ''}">
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Bet Description</label>
-                        <textarea id="description" name="description" required placeholder="Describe your bet in detail...">${betToEdit ? betToEdit.description : ''}</textarea>
+                        
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" name="date" required value="${betToEdit ? new Date(betToEdit.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}">
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="description">Bet Description</label>
+                            <textarea id="description" name="description" required placeholder="Describe your bet in detail...">${betToEdit ? betToEdit.description : ''}</textarea>
+                        </div>
+                    </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="odds">Decimal Odds</label>
                             <input type="number" id="odds" name="odds" step="0.01" min="1.01" required placeholder="1.91" value="${betToEdit ? betToEdit.odds : ''}">
-                            <small class="form-hint">Standard decimal odds (e.g., 1.91, 2.50)</small>
+                            <small class="form-hint">Standard odds</small>
                         </div>
                         
                         <div class="form-group">
-                            <label for="boosted-odds">Boosted Odds <span class="optional-tag">(optional)</span></label>
+                            <label for="boosted-odds">Boosted <span class="optional-tag">(optional)</span></label>
                             <input type="number" id="boosted-odds" name="boosted-odds" step="0.01" min="1.01" placeholder="2.00" value="${betToEdit && betToEdit.boosted_odds ? betToEdit.boosted_odds : ''}">
-                            <small class="form-hint">Boosted/promotional odds if applicable</small>
+                            <small class="form-hint">If applicable</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="amount">Amount (€)</label>
+                            <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="10.00" value="${betToEdit ? betToEdit.amount : ''}">
+                            <small class="form-hint">Stake</small>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-section">
+                    
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="amount">Amount Bet (€)</label>
-                            <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="10.00" value="${betToEdit ? betToEdit.amount : ''}">
-                            <small class="form-hint">Stake amount in Euros</small>
+                            <label for="outcome">Outcome</label>
+                            <select id="outcome" name="outcome" required>
+                                <option value="">-- Select --</option>
+                                <option value="win" ${betToEdit && betToEdit.outcome === 'win' ? 'selected' : ''}>Win</option>
+                                <option value="loss" ${betToEdit && betToEdit.outcome === 'loss' ? 'selected' : ''}>Loss</option>
+                                <option value="pending" ${betToEdit && betToEdit.outcome === 'pending' ? 'selected' : ''}>Pending</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="date">Date of Bet</label>
-                            <input type="date" id="date" name="date" required value="${betToEdit ? new Date(betToEdit.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}">
+                            <label for="note">Notes <span class="optional-tag">(optional)</span></label>
+                            <textarea id="note" name="note" placeholder="Any notes or strategy thoughts...">${betToEdit && betToEdit.note ? betToEdit.note : ''}</textarea>
                         </div>
-                    </div>
-                
-                    <div class="form-group">
-                        <label for="outcome">Bet Outcome</label>
-                        <select id="outcome" name="outcome" required>
-                            <option value="">-- Select Outcome --</option>
-                            <option value="win" ${betToEdit && betToEdit.outcome === 'win' ? 'selected' : ''}>Win</option>
-                            <option value="loss" ${betToEdit && betToEdit.outcome === 'loss' ? 'selected' : ''}>Loss</option>
-                            <option value="pending" ${betToEdit && betToEdit.outcome === 'pending' ? 'selected' : ''}>Pending</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <div class="form-group">
-                        <label for="note">Additional Notes <span class="optional-tag">(optional)</span></label>
-                        <textarea id="note" name="note" placeholder="Add any additional notes, thoughts, or strategy notes about this bet...">${betToEdit && betToEdit.note ? betToEdit.note : ''}</textarea>
                     </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="reset" class="btn-secondary">Clear Form</button>
+                    <button type="reset" class="btn-secondary">Clear</button>
                     ${betToEdit ? '<button type="button" class="btn-secondary" id="cancel-edit">Cancel</button>' : ''}
                     <button type="submit" class="btn-primary">${submitButtonText}</button>
                 </div>
