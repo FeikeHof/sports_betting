@@ -417,6 +417,12 @@ function renderCurrentPage() {
           </td>
           <td>${parseFloat(bet.odds).toFixed(2)}</td>
           <td>${bet.boosted_odds ? parseFloat(bet.boosted_odds).toFixed(2) : '-'}</td>
+          <td class="boost-value-cell ${bet.boosted_odds ? 'positive' : 'neutral'}">
+            ${bet.boosted_odds
+    ? `${(((parseFloat(bet.boosted_odds) - parseFloat(bet.odds)) / parseFloat(bet.odds)) * 100).toFixed(1)}%`
+    : '-'
+}
+          </td>
           <td>€${parseFloat(bet.amount).toFixed(2)}</td>
           <td class="outcome-cell ${bet.outcome}">${outcomeCellContent}</td>
           <td class="profit-loss ${profitLossClass}">
@@ -517,6 +523,21 @@ function sortBets(sortBy, direction) {
       case 'ev':
         valueA = calculateExpectedValue(a);
         valueB = calculateExpectedValue(b);
+        break;
+      case 'boost_value':
+        if (a.boosted_odds && b.boosted_odds) {
+          valueA = ((parseFloat(a.boosted_odds) - parseFloat(a.odds)) / parseFloat(a.odds)) * 100;
+          valueB = ((parseFloat(b.boosted_odds) - parseFloat(b.odds)) / parseFloat(b.odds)) * 100;
+        } else if (a.boosted_odds) {
+          valueA = 1;
+          valueB = 0;
+        } else if (b.boosted_odds) {
+          valueA = 0;
+          valueB = 1;
+        } else {
+          valueA = 0;
+          valueB = 0;
+        }
         break;
       default:
         valueA = 0;
@@ -742,6 +763,8 @@ async function loadBetHistory() {
             title="Original odds for this bet">Odds <span class="sort-icon"></span></th>
           <th class="sortable" data-sort="boosted_odds" 
             title="Boosted odds, if applicable">Boosted <span class="sort-icon"></span></th>
+          <th class="sortable" data-sort="boost_value" 
+            title="Percentage increase from original to boosted odds">Boost % <span class="sort-icon"></span></th>
           <th class="sortable" data-sort="amount" 
             title="Amount wagered">Amount <span class="sort-icon"></span></th>
           <th title="Current outcome status of the bet">Outcome</th>
