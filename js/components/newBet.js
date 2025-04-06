@@ -89,10 +89,9 @@ async function loadNewBetForm(betToEdit = null) {
                         <div class="form-group">
                             <label for="outcome">Outcome</label>
                             <select id="outcome" name="outcome" required>
-                                <option value="">-- Select --</option>
+                                <option value="pending" ${!betToEdit || betToEdit.outcome === 'pending' ? 'selected' : ''}>Pending</option>
                                 <option value="win" ${betToEdit && betToEdit.outcome === 'win' ? 'selected' : ''}>Win</option>
                                 <option value="loss" ${betToEdit && betToEdit.outcome === 'loss' ? 'selected' : ''}>Loss</option>
-                                <option value="pending" ${betToEdit && betToEdit.outcome === 'pending' ? 'selected' : ''}>Pending</option>
                             </select>
                         </div>
                         
