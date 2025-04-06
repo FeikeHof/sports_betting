@@ -367,6 +367,7 @@ function applyDashboardFilters() {
   const chartData = prepareCumulativeProfitData(filteredBets);
   const monthlyPerformanceData = calculateMonthlyPerformance(filteredBets);
   const weeklyPerformanceData = calculateWeeklyPerformance(filteredBets);
+  const dailyPerformanceData = calculateDailyPerformance(filteredBets);
   const evProfitData = prepareEVProfitData(filteredBets);
 
   // Update dashboard content
@@ -440,26 +441,27 @@ function applyDashboardFilters() {
 }
             </section>
             
-            <!-- Monthly Performance -->
+            <!-- Performance Over Time -->
             <section class="dashboard-section chart-half">
                 <h3>Performance Over Time</h3>
                 ${monthlyPerformanceData.length > 0
-    ? `<div class="chart-controls">
-            <div class="toggle-container">
-                <span>View:</span>
-                <div class="toggle-buttons">
-                    <button id="monthly-view" class="toggle-btn active">Monthly</button>
-                    <button id="weekly-view" class="toggle-btn">Weekly</button>
-                </div>
-            </div>
-        </div>
-        <div class="chart-container">
-            <canvas id="performanceChart"></canvas>
-        </div>`
-    : `<div class="no-data-message">
-            <p>Not enough data to display performance chart.</p>
-        </div>`
-}
+                  ? `<div class="chart-controls">
+                        <div class="toggle-container">
+                            <span>View:</span>
+                            <div class="toggle-buttons">
+                                <button id="monthly-view" class="toggle-btn active">Monthly</button>
+                                <button id="weekly-view" class="toggle-btn">Weekly</button>
+                                <button id="daily-view" class="toggle-btn">Daily</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>`
+                  : `<div class="no-data-message">
+                        <p>Not enough data to display performance chart.</p>
+                    </div>`
+                }
             </section>
         </div>
                 
@@ -552,13 +554,22 @@ function applyDashboardFilters() {
     document.getElementById('monthly-view').addEventListener('click', () => {
       document.getElementById('monthly-view').classList.add('active');
       document.getElementById('weekly-view').classList.remove('active');
+      document.getElementById('daily-view').classList.remove('active');
       initializePerformanceChart(monthlyPerformanceData, 'monthly');
     });
 
     document.getElementById('weekly-view').addEventListener('click', () => {
       document.getElementById('weekly-view').classList.add('active');
       document.getElementById('monthly-view').classList.remove('active');
+      document.getElementById('daily-view').classList.remove('active');
       initializePerformanceChart(weeklyPerformanceData, 'weekly');
+    });
+
+    document.getElementById('daily-view').addEventListener('click', () => {
+      document.getElementById('daily-view').classList.add('active');
+      document.getElementById('monthly-view').classList.remove('active');
+      document.getElementById('weekly-view').classList.remove('active');
+      initializePerformanceChart(dailyPerformanceData, 'daily');
     });
   }
 
@@ -941,6 +952,62 @@ function calculateWeeklyPerformance(bets) {
     .sort((a, b) => b.date - a.date); // Sort by date, most recent first
 }
 
+// Function to calculate daily performance
+function calculateDailyPerformance(bets) {
+  // Skip if no bets
+  if (bets.length === 0) {
+    return [];
+  }
+
+  // Filter out pending bets
+  const completedBets = bets.filter((bet) => bet.outcome !== 'pending');
+
+  // Group bets by day
+  const dailyData = {};
+
+  completedBets.forEach((bet) => {
+    const date = new Date(bet.date);
+    const dayString = date.toLocaleDateString();
+
+    if (!dailyData[dayString]) {
+      dailyData[dayString] = {
+        totalBets: 0,
+        wins: 0,
+        losses: 0,
+        amountBet: 0,
+        profit: 0,
+        // Store the date to help with sorting
+        date: new Date(date)
+      };
+    }
+
+    const data = dailyData[dayString];
+    data.totalBets++;
+    data.amountBet += parseFloat(bet.amount);
+
+    if (bet.outcome === 'win') {
+      data.wins++;
+      const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
+      const stake = parseFloat(bet.amount);
+      const totalPayout = stake * odds;
+      data.profit += totalPayout - stake; // Subtract stake to get actual profit
+    } else if (bet.outcome === 'loss') {
+      data.losses++;
+      data.profit -= parseFloat(bet.amount);
+    }
+  });
+
+  // Convert to array and sort by date (most recent first)
+  return Object.entries(dailyData)
+    .map(([day, data]) => ({
+      period: day,
+      ...data,
+      winRate: data.totalBets > 0 ? ((data.wins / data.totalBets) * 100).toFixed(1) : 0,
+      roi: data.amountBet > 0 ? ((data.profit / data.amountBet) * 100).toFixed(1) : 0
+    }))
+    .sort((a, b) => b.date - a.date); // Sort by date, most recent first
+}
+
 // Function to initialize the performance chart (monthly or weekly)
 function initializePerformanceChart(performanceData, viewType) {
   const ctx = document.getElementById('performanceChart').getContext('2d');
@@ -963,7 +1030,7 @@ function initializePerformanceChart(performanceData, viewType) {
     data: {
       labels: periods,
       datasets: [{
-        label: viewType === 'monthly' ? 'Monthly Profit/Loss (€)' : 'Weekly Profit/Loss (€)',
+        label: viewType === 'monthly' ? 'Monthly Profit/Loss (€)' : viewType === 'daily' ? 'Daily Profit/Loss (€)' : 'Weekly Profit/Loss (€)',
         data: profits,
         backgroundColor: barColors,
         borderColor: barBorderColors,
@@ -1007,7 +1074,7 @@ function initializePerformanceChart(performanceData, viewType) {
           },
           title: {
             display: true,
-            text: viewType === 'monthly' ? 'Month' : 'Week',
+            text: viewType === 'monthly' ? 'Month' : viewType === 'daily' ? 'Day' : 'Week',
             font: {
               size: 14,
               weight: 'bold'
