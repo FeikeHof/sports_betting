@@ -334,7 +334,9 @@ function applyDashboardFilters() {
         losses: 0,
         pending: 0,
         profitLoss: 0,
-        expectedValue: 0
+        expectedValue: 0,
+        nonBoostedProfit: 0,
+        boostImpact: 0
       };
     }
 
@@ -344,13 +346,26 @@ function applyDashboardFilters() {
 
     if (bet.outcome === 'win') {
       stats.wins++;
+      // Calculate actual profit with boosted odds
       const odds = bet.boosted_odds ? parseFloat(bet.boosted_odds) : parseFloat(bet.odds);
       const stake = parseFloat(bet.amount);
       const totalPayout = stake * odds;
       stats.profitLoss += totalPayout - stake;
+      
+      // Calculate non-boosted profit
+      const baseOdds = parseFloat(bet.odds);
+      const nonBoostedPayout = stake * baseOdds;
+      const nonBoostedProfit = nonBoostedPayout - stake;
+      stats.nonBoostedProfit += nonBoostedProfit;
+      
+      // Calculate the boost impact (difference between boosted and non-boosted profit)
+      const boostImpact = (totalPayout - stake) - nonBoostedProfit;
+      stats.boostImpact += boostImpact;
     } else if (bet.outcome === 'loss') {
       stats.losses++;
       stats.profitLoss -= parseFloat(bet.amount);
+      stats.nonBoostedProfit -= parseFloat(bet.amount);
+      // No boost impact on losses
     } else {
       stats.pending++;
     }
@@ -468,34 +483,67 @@ function applyDashboardFilters() {
         <!-- Website Performance -->
         <section class="dashboard-section">
             <h3>Website Performance</h3>
+            <style>
+                /* Custom CSS for arranging stat items in specific order */
+                .stat-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    grid-template-areas:
+                        "total-bets expected-value"
+                        "win-rate non-boosted"
+                        "record boost-impact"
+                        "amount profit-loss";
+                    gap: 15px;
+                }
+                .total-bets { grid-area: total-bets; }
+                .expected-value { grid-area: expected-value; }
+                .win-rate { grid-area: win-rate; }
+                .non-boosted { grid-area: non-boosted; }
+                .record { grid-area: record; }
+                .boost-impact { grid-area: boost-impact; }
+                .amount { grid-area: amount; }
+                .profit-loss { grid-area: profit-loss; }
+            </style>
             <div class="website-stats">
                 ${Object.entries(websiteStats).map(([website, stats]) => `
                     <div class="website-stat-card">
                         <h4>${website}</h4>
                         <div class="stat-grid">
-                            <div class="stat-item">
+                            <div class="stat-item total-bets">
                                 <span class="label">Total Bets:</span>
                                 <span class="value">${stats.totalBets}</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="label">Total Amount:</span>
-                                <span class="value">€${stats.totalAmount.toFixed(2)}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="label">Win Rate:</span>
-                                <span class="value">${stats.totalBets > 0 ? ((stats.wins / stats.totalBets) * 100).toFixed(1) : '0.0'}%</span>
-                            </div>
-                            <div class="stat-item">
+                            <div class="stat-item expected-value">
                                 <span class="label">Expected Value:</span>
                                 <span class="value ${stats.expectedValue >= 0 ? 'positive' : 'negative'}">
                                     €${stats.expectedValue.toFixed(2)}
                                 </span>
                             </div>
-                            <div class="stat-item">
+                            <div class="stat-item win-rate">
+                                <span class="label">Win Rate:</span>
+                                <span class="value">${stats.totalBets > 0 ? ((stats.wins / stats.totalBets) * 100).toFixed(1) : '0.0'}%</span>
+                            </div>
+                            <div class="stat-item non-boosted">
+                                <span class="label">Without Boosts:</span>
+                                <span class="value ${stats.nonBoostedProfit >= 0 ? 'positive' : 'negative'}">
+                                    €${stats.nonBoostedProfit.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="stat-item record">
                                 <span class="label">Record:</span>
                                 <span class="value">${stats.wins}W-${stats.losses}L-${stats.pending}P</span>
                             </div>
-                            <div class="stat-item">
+                            <div class="stat-item boost-impact">
+                                <span class="label">Boost Impact:</span>
+                                <span class="value ${stats.boostImpact > 0 ? 'positive' : stats.boostImpact < 0 ? 'negative' : ''}">
+                                    ${stats.boostImpact > 0 ? '+' : ''}€${stats.boostImpact.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="stat-item amount">
+                                <span class="label">Total Amount:</span>
+                                <span class="value">€${stats.totalAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="stat-item profit-loss">
                                 <span class="label">Profit/Loss:</span>
                                 <span class="value ${stats.profitLoss >= 0 ? 'positive' : 'negative'}">
                                     €${stats.profitLoss.toFixed(2)}
@@ -599,7 +647,7 @@ function prepareCumulativeProfitData(bets) {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if (completedBets.length < 2) {
-    return { labels: [], data: [], evData: [] };
+    return { labels: [], data: [], evData: [], nonBoostedData: [] };
   }
 
   // Group bets by date
@@ -619,8 +667,10 @@ function prepareCumulativeProfitData(bets) {
   const labels = [];
   const data = [];
   const evData = [];
+  const nonBoostedData = [];
   let cumulativeProfit = 0;
   let cumulativeEV = 0;
+  let cumulativeNonBoostedProfit = 0;
 
   // Process dates in chronological order
   Object.keys(betsByDate)
@@ -628,6 +678,7 @@ function prepareCumulativeProfitData(bets) {
     .forEach((date) => {
       let dailyProfit = 0;
       let dailyEV = 0;
+      let dailyNonBoostedProfit = 0;
 
       // Calculate profit and EV for all bets on this date
       betsByDate[date].forEach((bet) => {
@@ -637,8 +688,14 @@ function prepareCumulativeProfitData(bets) {
           const stake = parseFloat(bet.amount);
           const totalPayout = stake * odds;
           dailyProfit += totalPayout - stake; // Subtract stake to get actual profit
+          
+          // Calculate non-boosted profit (always use base odds)
+          const baseOdds = parseFloat(bet.odds);
+          const nonBoostedPayout = stake * baseOdds;
+          dailyNonBoostedProfit += nonBoostedPayout - stake;
         } else if (bet.outcome === 'loss') {
           dailyProfit -= parseFloat(bet.amount);
+          dailyNonBoostedProfit -= parseFloat(bet.amount); // Same for losses
         }
 
         // Calculate expected value
@@ -652,13 +709,15 @@ function prepareCumulativeProfitData(bets) {
       // Add to cumulative profit and EV
       cumulativeProfit += dailyProfit;
       cumulativeEV += dailyEV;
+      cumulativeNonBoostedProfit += dailyNonBoostedProfit;
 
       labels.push(date);
       data.push(cumulativeProfit.toFixed(2));
       evData.push(cumulativeEV.toFixed(2));
+      nonBoostedData.push(cumulativeNonBoostedProfit.toFixed(2));
     });
 
-  return { labels, data, evData };
+  return { labels, data, evData, nonBoostedData };
 }
 
 // Function to initialize the profit chart
@@ -672,6 +731,10 @@ function initializeProfitChart(chartData) {
   // Determine color for EV line
   const lastEVValue = parseFloat(chartData.evData[chartData.evData.length - 1]);
   const evChartColor = lastEVValue >= 0 ? 'rgba(52, 152, 219, 1)' : 'rgba(155, 89, 182, 1)';
+  
+  // Determine color for non-boosted profit line
+  const lastNonBoostedValue = parseFloat(chartData.nonBoostedData[chartData.nonBoostedData.length - 1]);
+  const nonBoostedChartColor = lastNonBoostedValue >= 0 ? 'rgba(243, 156, 18, 1)' : 'rgba(192, 57, 43, 1)';
 
   // Create gradient for the profit line
   const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -698,6 +761,22 @@ function initializeProfitChart(chartData) {
           tension: 0.2,
           cubicInterpolationMode: 'monotone',
           order: 1
+        },
+        {
+          label: 'Profit Without Boosts (€)',
+          data: chartData.nonBoostedData,
+          borderColor: nonBoostedChartColor,
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          pointBackgroundColor: nonBoostedChartColor,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
+          fill: false,
+          tension: 0.2,
+          cubicInterpolationMode: 'monotone',
+          order: 3
         },
         {
           label: 'Cumulative Expected Value (€)',
@@ -743,6 +822,8 @@ function initializeProfitChart(chartData) {
               const valueFormatted = (value >= 0 ? '+€' : '-€') + Math.abs(value).toFixed(2);
               if (context.datasetIndex === 0) {
                 return `Actual Profit/Loss: ${valueFormatted}`;
+              } else if (context.datasetIndex === 1) {
+                return `Without Boosts: ${valueFormatted}`;
               }
               return `Expected Value: ${valueFormatted}`;
             }
@@ -784,7 +865,18 @@ function initializeProfitChart(chartData) {
         },
         y: {
           grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
+            color: (context) => {
+              if (context.tick.value === 0) {
+                return 'rgba(0, 0, 0, 0.5)';
+              }
+              return 'rgba(0, 0, 0, 0.05)';
+            },
+            lineWidth: (context) => {
+              if (context.tick.value === 0) {
+                return 2;
+              }
+              return 1;
+            },
           },
           title: {
             display: true,
@@ -803,7 +895,10 @@ function initializeProfitChart(chartData) {
             font: {
               size: 12
             }
-          }
+          },
+          // Include zero in the scale to always show the zero line
+          beginAtZero: false,
+          grace: '5%'
         }
       },
       interaction: {
